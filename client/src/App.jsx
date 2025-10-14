@@ -1,7 +1,13 @@
+import {Routes,Route} from 'react-router-dom'
+import Home from "./pages/Home"
+import Blog from "./pages/Blog"
 const App = () => {
   return (
-    <div className='text-center text-4xl mt-20'>
-      This is the main file.
+    <div>
+      <Routes>
+        <Route path='/' element={<Home/>}/>
+        <Route path='/blog' element={<Blog/>}/>
+      </Routes>
     </div>
   )
 }
