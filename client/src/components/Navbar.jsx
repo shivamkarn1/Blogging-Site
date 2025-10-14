@@ -11,12 +11,12 @@ const Navbar = () => {
       <img onClick={()=>navigate('/')} src="../../public/blogify-high-resolution-logo.png" alt="logo" className='cursor-pointer h-40 sm:h-28 md:h-16 w-auto object-contain rounded-4xl border border-amber-800'/>
       <button
         type="button"
-        onClick={()=>navigate('/')}
-        aria-label="Login"
-        className="flex items-center cursor-pointer gap-2 bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors duration-200 shadow-md"
+        onClick={()=>navigate('/login')}
+        aria-label="Sign in"
+        className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-3 rounded-full text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-amber-500 via-yellow-400 to-rose-500 hover:scale-[1.01] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-amber-300/40 shadow-lg transition-transform"
       >
-        Login
-        <img src={assets.arrow} className='w-3' alt="arrow" />
+        Sign in
+        <img src={assets.arrow} className='w-3 sm:w-4' alt="arrow" />
       </button>
     </div>
   )
