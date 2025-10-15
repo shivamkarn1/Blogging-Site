@@ -6,6 +6,7 @@ import Layout from './pages/Admin/Layout'
 import AddBlog from './pages/Admin/AddBlog'
 import ListBlog from './pages/Admin/ListBlog'
 import Comments from './pages/Admin/Comments'
+import Login from './components/Admin/Login'
 const App = () => {
   return (
     <div>
@@ -16,7 +17,7 @@ const App = () => {
 
 
         {/* Routes for admin page */}
-        <Route path='/admin' element={<Layout/>}>
+        <Route path='/admin' element={true?<Layout/> : <Login/>}>
           <Route index element={<Dashboard/>}/>
           <Route path='addBlog' element={<AddBlog/>}/>
           <Route path='listBlog' element={<ListBlog/>}/>
