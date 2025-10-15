@@ -17,10 +17,10 @@ const App = () => {
 
         {/* Routes for admin page */}
         <Route path='/admin' element={<Layout/>}>
-        <Route index element={<Dashboard/>}/>
-        <Route path='addBlog' element={<AddBlog/>}/>
-        <Route path='listBlog' element={<ListBlog/>}/>
-        <Route path='comments' element={<Comments/>}/>
+          <Route index element={<Dashboard/>}/>
+          <Route path='addBlog' element={<AddBlog/>}/>
+          <Route path='listBlog' element={<ListBlog/>}/>
+          <Route path='comments' element={<Comments/>}/>
         </Route>
 
 
