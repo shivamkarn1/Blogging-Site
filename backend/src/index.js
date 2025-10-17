@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/',(req,res)=> res.send('Server is running Relax 😉...'));
 
-connectDB()
+await connectDB()
 .then(()=>{
     app.on("error",(error)=>{
         console.error("Error : ",error);
