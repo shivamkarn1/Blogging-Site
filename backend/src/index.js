@@ -2,14 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import connectDB from './db/db.js';
-import { CLIENT_RENEG_LIMIT } from 'tls';
-import { log } from 'console';
+import adminRouter from "./routes/admin.routes.js"
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+    origin:process.env.CORS_ORIGIN,
+    credentials: true
+}));
+app.use(express.json({limit:"16kb"}));
+app.use(express.urlencoded({ extended: true ,limit:"16kb"}));
 
 app.get('/',(req,res)=> res.send('Server is running Relax 😉...'));
 
@@ -26,6 +28,9 @@ await connectDB()
 .catch((error)=>{
     console.error("MongoDB Connection Failed: ", error);
 })
+
+// Routes 
+app.use('/api/v1/admin',adminRouter)
 
 
 const PORT = process.env.PORT || 8000;
