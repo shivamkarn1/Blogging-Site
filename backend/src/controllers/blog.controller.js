@@ -50,7 +50,7 @@ const getAllBlog = asyncHandler(async (req, res) => {
         const blogs = await Blog.find({ isPublished: true })
         return res
             .status(200)
-            .json(new ApiResponse(200, { blogs }, "All Blogs Fetched Successfully"))
+            .json(new ApiResponse(200, blogs , "All Blogs Fetched Successfully"))
     } catch (error) {
         throw new ApiError(400, "Error Fetching Blogs")
     }
