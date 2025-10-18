@@ -4,7 +4,7 @@ import Quill from 'quill'
 import { useAppContext } from "../../context/AppContext"
 import {toast} from "sonner"
 import {parse} from "marked"
-// .ADDED AI INTEGRATION OF GEMINI AI TO CREATE CONTENT.
+
 const AddBlog = () => {
   const {axios} = useAppContext()
 
@@ -18,12 +18,40 @@ const AddBlog = () => {
   const [category, setCategory] = useState('Startup')
   const [isPublished, setIsPublished] = useState(false)
   const [loading,setLoading] = useState(false)
+  const [typingProgress, setTypingProgress] = useState(0)
+
+  const typeContent = (content, speed = 10) => {
+    return new Promise((resolve) => {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      const textContent = tempDiv.textContent || tempDiv.innerText;
+      const totalLength = textContent.length;
+      
+      let currentIndex = 0;
+      const interval = setInterval(() => {
+        currentIndex += Math.floor(Math.random() * 3) + 1;
+        
+        if (currentIndex >= totalLength) {
+          currentIndex = totalLength;
+          setTypingProgress(100);
+          clearInterval(interval);
+          setTimeout(() => {
+            quillRef.current.root.innerHTML = content;
+            resolve();
+          }, 200);
+        } else {
+          setTypingProgress(Math.floor((currentIndex / totalLength) * 100));
+        }
+      }, speed);
+    });
+  };
 
   const generateContent = async() => {
     if(!title) return toast.error("Please enter a title")
 
     try {
         setLoading(true);
+        setTypingProgress(0);
         console.log("Sending request with title:", title);
         
         const {data} = await axios.post('/api/v1/blog/generate', {
@@ -33,7 +61,7 @@ const AddBlog = () => {
         console.log("Response:", data);
         
         if(data.success){
-            quillRef.current.root.innerHTML = parse(data.data) 
+            await typeContent(parse(data.data));
         } else {
             toast.error(data.message)
         }
@@ -42,12 +70,13 @@ const AddBlog = () => {
         toast.error(error.response?.data?.message || error.message || "Failed to generate content")
     } finally {
         setLoading(false)
+        setTypingProgress(0)
     }
   }
+
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     
-    // Manual validation for file input
     if (!featuredImage) {
       toast.error('Please select a featured image');
       return;
@@ -88,7 +117,6 @@ const AddBlog = () => {
 
       if(data.success){
         toast.success(data.message || 'Blog added successfully!')
-        // Reset form
         setFeaturedImage(false)
         setTitle('')
         setSubTitle('')
@@ -107,7 +135,6 @@ const AddBlog = () => {
     }
   }
 
-
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
       quillRef.current = new Quill(editorRef.current, { theme: 'snow' })
@@ -115,50 +142,63 @@ const AddBlog = () => {
   }, [])
 
   return (
-    <div className="flex-1 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 h-full overflow-y-auto">
-      <div className="w-full max-w-5xl px-6 py-12 mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Create New Post</h1>
-          <p className="text-slate-600 mt-2">Fill in the details below to publish your blog</p>
+    <div className="flex-1 bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/40 h-full overflow-y-auto">
+      <div className="w-full max-w-6xl px-6 py-16 mx-auto">
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-1.5 h-8 bg-gradient-to-b from-orange-500 to-amber-500 rounded-full"></div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
+              Create New Post
+            </h1>
+          </div>
+          <p className="text-slate-600 text-lg ml-5">Craft and publish engaging content for your audience</p>
         </div>
 
-        <form onSubmit={onSubmitHandler} className="bg-white rounded-lg shadow-sm border border-amber-200 overflow-hidden">
-          <div className="p-8 space-y-8">
+        <form onSubmit={onSubmitHandler} className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden backdrop-blur-sm">
+          <div className="p-10 space-y-8">
             
-            {/* Upload Thumbnail */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
+              <label className="block text-sm font-semibold text-slate-800 mb-3">
                 Featured Image *
               </label>
               <label htmlFor="featuredImage" className="block group">
-                <div className={`relative h-48 w-full rounded-lg border-2 border-dashed overflow-hidden cursor-pointer transition-colors bg-amber-50/50 ${
-                  featuredImage ? 'border-green-300' : 'border-amber-300 hover:border-orange-400'
+                <div className={`relative h-64 w-full rounded-xl border-2 border-dashed overflow-hidden cursor-pointer transition-all duration-300 ${
+                  featuredImage 
+                    ? 'border-emerald-400 bg-emerald-50/30 shadow-lg shadow-emerald-100' 
+                    : 'border-amber-300 bg-gradient-to-br from-amber-50/80 to-orange-50/80 hover:border-orange-400 hover:shadow-md hover:scale-[1.01]'
                 }`}>
-                  <img 
-                    src={!featuredImage ? assets.upload_area : URL.createObjectURL(featuredImage)} 
-                    alt="" 
-                    className="h-full w-full object-cover"
-                  />
-                  {!featuredImage && (
+                  {!featuredImage ? (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-amber-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        <span className="text-slate-500 text-sm">Click to upload featured image</span>
-                        <p className="text-xs text-slate-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                      <div className="text-center px-6">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <p className="text-slate-700 font-medium mb-1">Drop your image here or click to browse</p>
+                        <p className="text-xs text-slate-500">PNG, JPG, GIF up to 10MB • Recommended: 1200x630px</p>
                       </div>
                     </div>
-                  )}
-                  {featuredImage && (
-                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
+                  ) : (
+                    <>
+                      <img 
+                        src={URL.createObjectURL(featuredImage)} 
+                        alt="Featured" 
+                        className="h-full w-full object-contain"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute bottom-4 left-4 text-white">
+                          <p className="text-sm font-medium">Click to change image</p>
+                        </div>
+                      </div>
+                      <div className="absolute top-3 right-3 bg-emerald-500 text-white rounded-full p-2 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </>
                   )}
                 </div>
-                {/* REMOVED required attribute and added manual validation */}
                 <input 
                   onChange={(e) => setFeaturedImage(e.target.files[0])} 
                   type="file" 
@@ -169,156 +209,209 @@ const AddBlog = () => {
               </label>
             </div>
 
-            {/* Blog Title */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
-                Title *
+              <label className="block text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <span>Title</span>
+                <span className="text-rose-500">*</span>
               </label>
               <input 
                 onChange={e => setTitle(e.target.value)} 
                 value={title} 
                 type="text" 
-                placeholder="Enter a compelling title" 
-                className="w-full px-4 py-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 text-slate-900 placeholder-slate-400 transition-all"
+                placeholder="Enter a compelling title that captures attention" 
+                className="w-full px-5 py-3.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 text-slate-900 placeholder-slate-400 transition-all duration-200 bg-slate-50/50 hover:border-slate-300"
               />
             </div>
 
-            {/* Sub Title */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
-                Subtitle *
+              <label className="block text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <span>Subtitle</span>
+                <span className="text-rose-500">*</span>
               </label>
               <input 
                 onChange={e => setSubTitle(e.target.value)} 
                 value={subTitle} 
                 type="text" 
-                placeholder="Add a brief description" 
-                className="w-full px-4 py-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 text-slate-900 placeholder-slate-400 transition-all"
+                placeholder="Add a brief description to complement your title" 
+                className="w-full px-5 py-3.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 text-slate-900 placeholder-slate-400 transition-all duration-200 bg-slate-50/50 hover:border-slate-300"
               />
             </div>
 
-            {/* Blog Description */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
-                Content *
+              <label className="block text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <span>Content</span>
+                <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <div 
                   ref={editorRef}
-                  className={`min-h-[20rem] border border-amber-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-400 transition-all ${loading ? 'opacity-50' : ''}`}
+                  className={`min-h-[24rem] border-2 border-slate-200 rounded-xl bg-slate-50/50 focus-within:ring-4 focus-within:ring-orange-500/20 focus-within:border-orange-500 transition-all duration-200 ${loading ? 'opacity-50' : ''}`}
                 ></div>
                 
-                {/* Enhanced Loading Overlay */}
                 {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg">
-                    <div className="text-center">
-                      <div className="relative">
-                        {/* Outer spinning ring */}
-                        <div className="w-12 h-12 border-4 border-orange-200 rounded-full animate-spin"></div>
-                        {/* Inner spinning dot */}
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-50/98 via-orange-50/98 to-amber-50/98 backdrop-blur-md rounded-lg border border-orange-200/50 shadow-lg">
+                    <div className="text-center max-w-sm px-6">
+                      
+                      <div className="relative inline-block mb-6">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 rounded-2xl blur-xl opacity-40 animate-pulse"></div>
+                        <div className="relative bg-gradient-to-br from-orange-500 to-amber-500 p-4 rounded-2xl shadow-lg">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                        </div>
                       </div>
-                      <div className="mt-4 space-y-1">
-                        <p className="text-orange-600 font-medium text-sm">Generating content with AI...</p>
-                        <p className="text-slate-500 text-xs">This may take a few seconds</p>
+
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                          AI Content Generation
+                        </h3>
+                        <p className="text-sm text-slate-600">
+                          {typingProgress > 0 ? 'Writing your content' : 'Analyzing your topic'}
+                          <span className="inline-flex ml-1">
+                            <span className="animate-[bounce_1s_ease-in-out_infinite_0ms]">.</span>
+                            <span className="animate-[bounce_1s_ease-in-out_infinite_200ms]">.</span>
+                            <span className="animate-[bounce_1s_ease-in-out_infinite_400ms]">.</span>
+                          </span>
+                        </p>
+                      </div>
+
+                      <div className="w-full bg-slate-200 rounded-full h-2 mb-2 overflow-hidden shadow-inner">
+                        <div 
+                          className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
+                          style={{ width: `${typingProgress}%` }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_ease-in-out_infinite]"></div>
+                        </div>
                       </div>
                       
-                      {/* Animated dots */}
-                      <div className="flex justify-center space-x-1 mt-3">
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                      </div>
+                      <p className="text-xs font-medium text-slate-500">
+                        {typingProgress > 0 ? `${typingProgress}% complete` : 'Preparing...'}
+                      </p>
+
+                      {typingProgress > 0 && (
+                        <div className="mt-4 flex items-center justify-center gap-1.5">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-[pulse_1.4s_ease-in-out_infinite]"></div>
+                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-[pulse_1.4s_ease-in-out_infinite_0.2s]"></div>
+                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-[pulse_1.4s_ease-in-out_infinite_0.4s]"></div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
                 
-                {/* Enhanced Generate Button */}
                 <button 
                   disabled={loading}
                   type="button" 
                   onClick={generateContent} 
-                  className={`absolute bottom-4 right-4 text-sm font-medium transition-all px-4 py-2 rounded-lg shadow-sm flex items-center gap-2 min-w-[140px] justify-center ${
+                  className={`absolute bottom-5 right-5 text-sm font-semibold transition-all px-6 py-3 rounded-xl flex items-center gap-2.5 min-w-[180px] justify-center group shadow-lg ${
                     loading 
-                      ? 'text-orange-500 bg-orange-50 border border-orange-200 cursor-not-allowed' 
-                      : 'text-orange-700 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 border border-amber-300 hover:shadow-md active:scale-95'
+                      ? 'text-orange-600 bg-orange-50 border-2 border-orange-200 cursor-not-allowed' 
+                      : 'text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-700 hover:via-orange-600 hover:to-amber-700 border-2 border-orange-400/50 hover:shadow-xl hover:shadow-orange-500/30 active:scale-95'
                   }`}
                 >
                   {loading ? (
                     <>
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Generating...
+                      <span>Generating</span>
                     </>
                   ) : (
                     <>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      Generate with AI
+                      <span>Generate with AI</span>
                     </>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-3">
-                Category *
+              <label className="block text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                <span>Category</span>
+                <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <select 
                   onChange={e => setCategory(e.target.value)} 
                   value={category}
-                  className="w-full px-4 py-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 text-slate-900 bg-white transition-all cursor-pointer appearance-none pr-10"
+                  className="w-full px-5 py-3.5 rounded-xl border-2 border-slate-200 focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 text-slate-900 bg-slate-50/50 transition-all duration-200 cursor-pointer appearance-none pr-12 font-medium hover:border-slate-300"
                 >
                   <option value="">Select a category</option>
                   {blogCategories.map((item, index) => {
                     return <option key={index} value={item}>{item}</option>
                   })}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            {/* Publish Toggle */}
-            <div className="flex items-center gap-3 pt-4 border-t border-amber-100">
-              <input 
-                type="checkbox" 
-                id="publish-toggle"
-                checked={isPublished} 
-                className="w-4 h-4 rounded border-amber-300 text-orange-500 focus:ring-2 focus:ring-orange-400 cursor-pointer" 
-                onChange={e => setIsPublished(e.target.checked)}
-              />
-              <label htmlFor="publish-toggle" className="text-sm font-medium text-slate-700 cursor-pointer">
-                Publish immediately
-              </label>
+            <div className="flex items-center gap-4 pt-6 border-t-2 border-slate-100">
+              <div className="flex items-center gap-3 group cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  id="publish-toggle"
+                  checked={isPublished} 
+                  className="w-5 h-5 rounded-lg border-2 border-slate-300 text-orange-600 focus:ring-4 focus:ring-orange-500/20 cursor-pointer transition-all" 
+                  onChange={e => setIsPublished(e.target.checked)}
+                />
+                <label htmlFor="publish-toggle" className="text-sm font-semibold text-slate-700 cursor-pointer group-hover:text-slate-900 transition-colors flex items-center gap-2">
+                  <span>Publish immediately</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </label>
+              </div>
+              {isPublished && (
+                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+                  Will be published
+                </span>
+              )}
             </div>
 
           </div>
 
-          {/* Form Actions */}
-          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 px-8 py-4 border-t border-amber-200 flex justify-end gap-3">
-            <button 
-              type="button"
-              className="px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 transition-colors"
-            >
-              Save Draft
-            </button>
-            <button 
-              disabled={isAdding}
-              type="submit"
-              className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg hover:from-orange-600 hover:to-amber-600 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isAdding ? "Adding..." : "Add Blog"}
-            </button>
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100/50 px-10 py-6 border-t-2 border-slate-100 flex justify-between items-center">
+            <p className="text-sm text-slate-600">
+              <span className="text-rose-500 font-semibold">*</span> Required fields
+            </p>
+            <div className="flex gap-3">
+              <button 
+                type="button"
+                className="px-6 py-3 text-sm font-semibold text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow active:scale-95"
+              >
+                Save Draft
+              </button>
+              <button 
+                disabled={isAdding}
+                type="submit"
+                className="px-8 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 rounded-xl hover:from-orange-700 hover:via-orange-600 hover:to-amber-700 transition-all duration-200 shadow-lg hover:shadow-xl hover:shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg active:scale-95 flex items-center gap-2"
+              >
+                {isAdding ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Publishing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Publish Blog</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>
