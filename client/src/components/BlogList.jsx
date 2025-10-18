@@ -2,9 +2,30 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { blog_data, blogCategories } from "../assets/assets";
 import BlogCard from "./BlogCard";
+import { useAppContext } from "../context/AppContext";
 
 const BlogList = () => {
   const [menu , setMenu] = useState("All")
+  const {blogs = [], input} = useAppContext(); // Add default empty array
+
+  const filteredBlogs = ()=>{
+    if(input === ''){
+      return blogs
+    }
+    return blogs.filter((blog)=>blog.title.toLowerCase().includes(input.toLowerCase())  || blog.category.toLowerCase().includes(input.toLowerCase()))
+  }
+
+  // Add loading state
+  // if (!blogs || blogs.length === 0) {
+  //   return (
+  //     <div className="flex justify-center items-center min-h-[400px]">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+  //         <p className="text-gray-600">Loading blogs...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div>
@@ -115,7 +136,7 @@ const BlogList = () => {
         </motion.p>
       </motion.div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols4 gap-8 mb-24 mx-8 sm:mx-16 xl:mx-40">
-        {blog_data.filter((blog)=>menu ==='All' ? true : blog.category===menu).map((blog)=><BlogCard key={blog._id} blog={blog}/>)}
+        {filteredBlogs().filter((blog)=>menu ==='All' ? true : blog.category===menu).map((blog)=><BlogCard key={blog._id} blog={blog}/>)}
       </div>
     </div>
   );

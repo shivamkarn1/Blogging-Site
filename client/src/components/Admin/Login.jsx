@@ -1,14 +1,36 @@
 import React, { useState } from 'react'
+import { useAppContext } from '../../context/AppContext'
+import { toast } from 'sonner';
 
 const Login = () => {
+  const { axios, setToken, navigate } = useAppContext();
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     console.log('Login:', { email, password })
-    // Add your login logic here
+    
+    try {
+      const { data } = await axios.post('/api/v1/admin/login', { email, password })
+
+      if (data.success) {
+        setToken(data.token)
+        localStorage.setItem('token', data.token)
+        axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+        toast.success('Login successful!')
+        navigate('/admin')
+      } else {
+        toast.error(data.message || 'Login failed')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      if (error.response) {
+        toast.error(error.response.data?.message || 'Invalid credentials')
+      } else {
+        toast.error('Network error. Please try again.')
+      }
+    }
   }
 
   return (
@@ -53,9 +75,9 @@ const Login = () => {
 
             <div className='flex items-center justify-between text-sm'>
               <label className='flex items-center text-amber-700 cursor-pointer group'>
-              
+
               </label>
-              
+
             </div>
 
             <button
@@ -69,7 +91,7 @@ const Login = () => {
 
         {/* Decorative Elements */}
         <div className='absolute -z-10 top-0 -left-4 w-72 h-72 bg-amber-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse'></div>
-        <div className='absolute -z-10 bottom-0 -right-4 w-72 h-72 bg-rose-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse' style={{animationDelay: '1s'}}></div>
+        <div className='absolute -z-10 bottom-0 -right-4 w-72 h-72 bg-rose-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse' style={{ animationDelay: '1s' }}></div>
       </div>
     </div>
   )
