@@ -137,42 +137,26 @@ const updateBlog = asyncHandler(async (req, res) => {
 const addComment = asyncHandler(async (req, res) => {
     const { blogId, name, content } = req.body;
     
-    // Validate required fields
     if (!blogId || !name || !content) {
-        throw new ApiError(400, "Blog ID, name, and content are required");
+        throw new ApiError(400, "All fields are required");
     }
     
+    // Check if blog exists
     const existingBlog = await Blog.findById(blogId);
     if (!existingBlog) {
         throw new ApiError(404, "Blog not found");
     }
     
-    // Validate content length
-    if (content.trim().length < 1) {
-        throw new ApiError(400, "Comment content cannot be empty");
-    }
-    
-    if (content.length > 1000) {
-        throw new ApiError(400, "Comment content cannot exceed 1000 characters");
-    }
-    
-    if (name.trim().length < 1) {
-        throw new ApiError(400, "Name cannot be empty");
-    }
-    
-    if (name.length > 100) {
-        throw new ApiError(400, "Name cannot exceed 100 characters");
-    }
-    
     const comment = await Comment.create({
         blogId: blogId, 
         name: name.trim(),
-        content: content.trim()
+        content: content.trim(),
+        isApproved: false
     });
     
-    return res
-        .status(201)
-        .json(new ApiResponse(201, { comment }, "Comment added successfully"));
+    return res.status(201).json(
+        new ApiResponse(201, comment, "Comment added successfully. It will be visible after approval.")
+    );
 });
 
 const getBlogComments = asyncHandler(async (req, res) => {

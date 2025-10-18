@@ -3,6 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { Blog } from '../models/blog.model.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import {Comment} from "../models/comment.model.js"
+import { ApiError } from "../utils/ApiError.js"
 
 const adminLogin = async(req , res)=>{
     try {
@@ -17,17 +18,93 @@ const adminLogin = async(req , res)=>{
     }
 }
 
-const getAllBlogsAdmin = asyncHandler(async(req,res)=>{
-    const blogs = await Blog.find({}).sort({createdAt:-1})
-    return res.status(200).json(new ApiResponse(200,{blogs},"Blogs of admin fetched successfully"))
+const getAllComments = asyncHandler(async (req, res) => {
+    try {
+        // Try with populate first if it fails get comments without populate
+        let comments;
+        try {
+            comments = await Comment.find()
+                .populate('blogId', 'title')
+                .sort({ createdAt: -1 })
+        } catch (populateError) {
+            console.error('Populate error, fetching without populate:', populateError)
+            // If populate fails, get comments without blog title
+            comments = await Comment.find()
+                .sort({ createdAt: -1 })
+            
+            // Manually add blog titles
+            for (let comment of comments) {
+                if (comment.blogId) {
+                    try {
+                        const blog = await Blog.findById(comment.blogId).select('title')
+                        comment.blogId = blog || { title: 'Unknown Blog' }
+                    } catch (err) {
+                        comment.blogId = { title: 'Unknown Blog' }
+                    }
+                }
+            }
+        }
+        
+        return res
+            .status(200)
+            .json(new ApiResponse(200, comments, "Comments fetched successfully"))
+    } catch (error) {
+        console.error('Get all comments error:', error)
+        throw new ApiError(500, error?.message || "Something went wrong while fetching comments")
+    }
 })
 
-const getAllComments = asyncHandler(async(req,res)=>{
-    const comments = await Comment.find({}).populate("blog").sort({createdAt:-1})
-    return res.status(200).json(new ApiResponse(200,{comments},"All Comments fetched successfully"))
+const approveCommentById = asyncHandler(async (req, res) => {
+    try {
+        const { commentId } = req.body
+        
+        if (!commentId) {
+            throw new ApiError(400, "Comment ID is required")
+        }
+        
+        const comment = await Comment.findByIdAndUpdate(
+            commentId,
+            { isApproved: true },
+            { new: true }
+        )
+        
+        if (!comment) {
+            throw new ApiError(404, "Comment not found")
+        }
+        
+        return res
+            .status(200)
+            .json(new ApiResponse(200, comment, "Comment approved successfully"))
+    } catch (error) {
+        console.error('Approve comment error:', error)
+        throw new ApiError(500, error?.message || "Something went wrong while approving comment")
+    }
 })
 
-const getDashboardData = asyncHandler(async(req,res)=>{
+const deleteCommentById = asyncHandler(async (req, res) => {
+    try {
+        const { commentId } = req.body
+        
+        if (!commentId) {
+            throw new ApiError(400, "Comment ID is required")
+        }
+        
+        const comment = await Comment.findByIdAndDelete(commentId)
+        
+        if (!comment) {
+            throw new ApiError(404, "Comment not found")
+        }
+        
+        return res
+            .status(200)
+            .json(new ApiResponse(200, {}, "Comment deleted successfully"))
+    } catch (error) {
+        console.error('Delete comment error:', error)
+        throw new ApiError(500, error?.message || "Something went wrong while deleting comment")
+    }
+})
+
+const getDashboardData = asyncHandler(async (req, res) => {
     try {
         const totalPublishedBlogs = await Blog.countDocuments({ isPublished: true })
         
@@ -35,10 +112,9 @@ const getDashboardData = asyncHandler(async(req,res)=>{
         
         const drafts = await Blog.countDocuments({ isPublished: false })
         
-        // Get recent 6 blogs (both published and unpublished)
         const recentBlogs = await Blog.find()
             .sort({ createdAt: -1 })
-            .limit(6)
+            .limit(5)
             .select('title subTitle isPublished createdAt')
         
         const dashboardData = {
@@ -48,40 +124,33 @@ const getDashboardData = asyncHandler(async(req,res)=>{
             recentBlogs: recentBlogs
         }
         
-        console.log('Dashboard data being sent:', dashboardData); // Debug log
-        
         return res
             .status(200)
             .json(new ApiResponse(200, dashboardData, "Dashboard data fetched successfully"))
     } catch (error) {
-        console.error('Dashboard controller error:', error);
+        console.error('Dashboard error:', error)
         throw new ApiError(500, error?.message || "Something went wrong while fetching dashboard data")
     }
 })
 
-const deleteCommentById = asyncHandler(async(req,res)=>{
-    const {commentId} = req.body;
-    await Comment.findByIdAndDelete(commentId)
-    return res.status(200).json(new ApiResponse(200,{},"Comment Deleted Successfully"))
+const getAllBlogsAdmin = asyncHandler(async (req, res) => {
+    try {
+        const blogs = await Blog.find({}).sort({ createdAt: -1 })
+        
+        return res
+            .status(200)
+            .json(new ApiResponse(200, blogs, "All Blogs Fetched Successfully (Admin)"))
+    } catch (error) {
+        throw new ApiError(500, error?.message || "Something went wrong while fetching blogs")
+    }
 })
-const approveCommentById = asyncHandler(async(req,res)=>{
-    const {commentId} = req.body;
-    await Comment.findByIdAndUpdate(commentId,{isApproved:true})
-    return res.status(200).json(new ApiResponse(200,{},"Comment Approved Successfully"))
-})
-
-
-
-
 
 export {
     adminLogin,
-    getAllBlogsAdmin,
-    getAllComments,
-    getDashboardData,
-    deleteCommentById,
-    approveCommentById
-
-
+    getAllComments, 
+    approveCommentById, 
+    deleteCommentById, 
+    getDashboardData, 
+    getAllBlogsAdmin 
 }
 
