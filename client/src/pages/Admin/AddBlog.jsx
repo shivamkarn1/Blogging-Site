@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import { assets, blogCategories } from "../../assets/assets"
 import Quill from 'quill'
 import { useAppContext } from "../../context/AppContext"
-import { showSuccessToast, showErrorToast } from "../../utils/toast.js"
+import {toast} from "sonner"
 import {parse} from "marked"
 
 const AddBlog = () => {
@@ -18,17 +18,27 @@ const AddBlog = () => {
   const [category, setCategory] = useState('Startup')
   const [isPublished, setIsPublished] = useState(false)
   const [loading,setLoading] = useState(false)
-  const [generationStage, setGenerationStage] = useState('')
+  const [particles, setParticles] = useState([])
+
+  useEffect(() => {
+    if (loading) {
+      const newParticles = Array.from({ length: 20 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        delay: Math.random() * 2,
+        duration: 2 + Math.random() * 2
+      }));
+      setParticles(newParticles);
+    }
+  }, [loading]);
 
   const generateContent = async() => {
-    if(!title) return showErrorToast("Please enter a title")
+    if(!title) return toast.error("Please enter a title")
 
     try {
         setLoading(true);
-        setGenerationStage('thinking');
         console.log("Sending request with title:", title);
-        
-        setTimeout(() => setGenerationStage('writing'), 800);
         
         const {data} = await axios.post('/api/v1/blog/generate', {
             prompt: title
@@ -37,23 +47,18 @@ const AddBlog = () => {
         console.log("Response:", data);
         
         if(data.success){
-            setGenerationStage('finalizing');
             setTimeout(() => {
                 quillRef.current.root.innerHTML = parse(data.data);
                 setLoading(false);
-                setGenerationStage('');
-                showSuccessToast('Content generated successfully! ✨');
-            }, 400);
+            }, 600);
         } else {
-            showErrorToast(data.message || 'Failed to generate content')
+            toast.error(data.message)
             setLoading(false);
-            setGenerationStage('');
         }
     } catch (error) {
         console.error("Generate content error:", error);
-        showErrorToast(error.response?.data?.message || error.message || "Failed to generate content")
+        toast.error(error.response?.data?.message || error.message || "Failed to generate content")
         setLoading(false);
-        setGenerationStage('');
     }
   }
 
@@ -61,22 +66,22 @@ const AddBlog = () => {
     e.preventDefault();
     
     if (!featuredImage) {
-      showErrorToast('Please select a featured image');
+      toast.error('Please select a featured image');
       return;
     }
     
     if (!title.trim()) {
-      showErrorToast('Please enter a title');
+      toast.error('Please enter a title');
       return;
     }
     
     if (!subTitle.trim()) {
-      showErrorToast('Please enter a subtitle');
+      toast.error('Please enter a subtitle');
       return;
     }
     
     if (!category) {
-      showErrorToast('Please select a category');
+      toast.error('Please select a category');
       return;
     }
 
@@ -99,7 +104,7 @@ const AddBlog = () => {
       })
 
       if(data.success){
-        showSuccessToast(data.message || 'Blog published successfully! 🎉')
+        toast.success(data.message || 'Blog added successfully!')
         setFeaturedImage(false)
         setTitle('')
         setSubTitle('')
@@ -107,12 +112,12 @@ const AddBlog = () => {
         setCategory('Startup')
         setIsPublished(false)
       }else{
-        showErrorToast(data.message || 'Failed to add blog')
+        toast.error(data.message || 'Failed to add blog')
       }
       
     } catch (error) {
       console.error('Add blog error:', error);
-      showErrorToast(error.response?.data?.message || error.message || 'Failed to add blog')
+      toast.error(error.response?.data?.message || error.message || 'Failed to add blog')
     }finally{
       setIsAdding(false)
     }
@@ -232,59 +237,91 @@ const AddBlog = () => {
                 ></div>
                 
                 {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-xl">
-                    <div className="text-center">
-                      
-                      <div className="relative inline-block mb-5">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-50/98 via-amber-50/98 to-yellow-50/98 backdrop-blur-xl rounded-xl overflow-hidden border-2 border-orange-200/50">
+                    
+                    {particles.map((particle) => (
+                      <div
+                        key={particle.id}
+                        className="absolute w-1 h-1 bg-orange-500 rounded-full opacity-0"
+                        style={{
+                          left: `${particle.x}%`,
+                          top: `${particle.y}%`,
+                          animation: `particle-float ${particle.duration}s ease-in-out ${particle.delay}s infinite`
+                        }}
+                      />
+                    ))}
+
+                    <div className="absolute inset-0">
+                      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-300/30 rounded-full blur-3xl animate-pulse"></div>
+                      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-300/30 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+                    </div>
+
+                    <div className="relative h-full flex items-center justify-center">
+                      <div className="text-center">
                         
-                        <div className="relative">
-                          <svg className="w-20 h-20" viewBox="0 0 100 100">
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r="40"
-                              fill="none"
-                              stroke="url(#gradient)"
-                              strokeWidth="6"
-                              strokeLinecap="round"
-                              strokeDasharray="251.2"
-                              strokeDashoffset="0"
-                              className="animate-[spin_1.5s_ease-in-out_infinite]"
-                            />
-                            <defs>
-                              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#f97316" />
-                                <stop offset="100%" stopColor="#f59e0b" />
-                              </linearGradient>
-                            </defs>
-                          </svg>
+                        <div className="relative inline-block mb-8">
+                          
+                          <div className="absolute inset-0 animate-ping">
+                            <div className="w-32 h-32 border-4 border-orange-300/40 rounded-full"></div>
+                          </div>
                           
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-9 h-9 text-orange-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                            <div className="w-32 h-32 border-t-4 border-r-4 border-orange-500 rounded-full animate-spin"></div>
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center" style={{animationDelay: '0.3s'}}>
+                            <div className="w-24 h-24 border-b-4 border-l-4 border-amber-500 rounded-full animate-spin" style={{animationDirection: 'reverse'}}></div>
+                          </div>
+                          
+                          <div className="relative w-32 h-32 flex items-center justify-center">
+                            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl shadow-2xl flex items-center justify-center animate-pulse">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                            </div>
+                          </div>
+
+                          <div className="absolute -inset-4">
+                            <div className="w-full h-full">
+                              {[...Array(8)].map((_, i) => (
+                                <div
+                                  key={i}
+                                  className="absolute w-2 h-2 bg-orange-500 rounded-full"
+                                  style={{
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: `rotate(${i * 45}deg) translateY(-70px)`,
+                                    animation: `pulse 1.5s ease-in-out ${i * 0.1}s infinite`
+                                  }}
+                                />
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="space-y-2">
-                        <h3 className="text-lg font-bold text-slate-800">
-                          {generationStage === 'thinking' && 'Analyzing Topic...'}
-                          {generationStage === 'writing' && 'Creating Content...'}
-                          {generationStage === 'finalizing' && 'Almost Done!'}
-                        </h3>
-                        <p className="text-sm text-slate-600 max-w-xs mx-auto">
-                          {generationStage === 'thinking' && 'Understanding your requirements'}
-                          {generationStage === 'writing' && 'AI is crafting your blog post'}
-                          {generationStage === 'finalizing' && 'Polishing the final touches'}
-                        </p>
-                      </div>
+                        <div className="space-y-3">
+                          <h3 className="text-2xl font-bold text-slate-800 flex items-center justify-center gap-2">
+                            <span className="inline-block animate-pulse">✨</span>
+                            AI Magic in Progress
+                            <span className="inline-block animate-pulse" style={{animationDelay: '0.5s'}}>✨</span>
+                          </h3>
+                          <p className="text-orange-700 text-sm font-medium">
+                            Crafting your perfect blog content
+                          </p>
+                        </div>
 
-                      <div className="flex justify-center gap-1.5 mt-5">
-                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[bounce_1s_ease-in-out_infinite]"></div>
-                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.2s]"></div>
-                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.4s]"></div>
+                        <div className="mt-8 flex items-center justify-center gap-2">
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <div
+                                key={i}
+                                className="w-2 h-8 bg-gradient-to-t from-orange-500 to-amber-400 rounded-full"
+                                style={{
+                                  animation: `wave 1s ease-in-out ${i * 0.1}s infinite`
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -311,7 +348,7 @@ const AddBlog = () => {
                   ) : (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                       <span>Generate with AI</span>
                     </>
