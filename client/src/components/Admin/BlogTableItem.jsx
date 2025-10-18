@@ -1,7 +1,7 @@
 import React from 'react'
 import { assets } from '../../assets/assets'
 import {useAppContext} from "../../context/AppContext"
-import { toast } from 'sonner';
+import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 const BlogTableItem = ({blog,fetchBlogs,index}) => {
   
@@ -17,14 +17,14 @@ const BlogTableItem = ({blog,fetchBlogs,index}) => {
       // Use blogId (this should match your backend controller expectation)
       const {data} = await axios.post('/api/v1/blog/delete', {blogId: blog._id})
       if(data.success){
-        toast.success(data.message)
+        showSuccessToast(data.message)
         await fetchBlogs()
       }else{
-        toast.error(data.message)
+        showErrorToast(data.message)
       }
     } catch (error) {
       console.error('Delete blog error:', error);
-      toast.error(error.response?.data?.message || error.message)
+      showErrorToast(error.response?.data?.message || error.message)
     }
   }
 
@@ -33,14 +33,14 @@ const BlogTableItem = ({blog,fetchBlogs,index}) => {
       // Use blogId (this should match your backend controller expectation)  
       const {data} = await axios.post("/api/v1/blog/toggle-publish", {blogId: blog._id})
       if(data.success){
-        toast.success(data.message)
+        showSuccessToast(data.message)
         await fetchBlogs()
       }else{
-        toast.error(data.message)
+        showErrorToast(data.message)
       }
     } catch (error) {
       console.error('Toggle publish error:', error);
-      toast.error(error.response?.data?.message || error.message)
+      showErrorToast(error.response?.data?.message || error.message)
     }
   }
 
@@ -71,7 +71,6 @@ const BlogTableItem = ({blog,fetchBlogs,index}) => {
           >
             {blog.isPublished ? "Unpublish" : "Publish"}
           </button>
-          {/* Added onClick handler */}
           <button 
             onClick={deleteBlog}
             className="p-1.5 rounded-lg hover:bg-red-100 transition-colors group"

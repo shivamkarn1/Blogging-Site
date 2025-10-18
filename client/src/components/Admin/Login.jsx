@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useAppContext } from '../../context/AppContext'
-import { toast } from 'sonner';
+import { showSuccessToast, showErrorToast } from '../../utils/toast'
 
 const Login = () => {
   const { axios, setToken, navigate } = useAppContext();
@@ -10,7 +10,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     console.log('Login:', { email, password })
-    
+
     try {
       const { data } = await axios.post('/api/v1/admin/login', { email, password })
 
@@ -18,17 +18,17 @@ const Login = () => {
         setToken(data.token)
         localStorage.setItem('token', data.token)
         axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-        toast.success('Login successful!')
+        showSuccessToast('Login successful!')
         navigate('/admin')
       } else {
-        toast.error(data.message || 'Login failed')
+        showErrorToast(data.message || 'Login failed')
       }
     } catch (error) {
       console.error('Login error:', error)
       if (error.response) {
-        toast.error(error.response.data?.message || 'Invalid credentials')
+        showErrorToast(error.response.data?.message || 'Invalid credentials')
       } else {
-        toast.error('Network error. Please try again.')
+        showErrorToast('Network error. Please try again.')
       }
     }
   }

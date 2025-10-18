@@ -39,3 +39,43 @@
 .rich-text li { margin-bottom: 8px; }
 
 .rich-text a { color: #007AFF }
+
+/* Custom Toast Styles */
+.custom-toast {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Toast close button styling */
+[data-sonner-toast] [data-close-button] {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  border-radius: 6px !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Toast icon styling */
+[data-sonner-toast] [data-icon] {
+  margin-right: 8px !important;
+}

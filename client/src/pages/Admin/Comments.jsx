@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import CommentTableItem from '../../components/Admin/CommentTableItem'
 import { useAppContext } from "../../context/AppContext"
-import { toast } from 'sonner'
+import { showSuccessToast, showErrorToast } from '../../utils/toast'
 
 const Comments = () => {
   const [comments, setComments] = useState([])
@@ -27,11 +27,11 @@ const Comments = () => {
       if (data.success) {
         setComments(data.data || []) 
       } else {
-        toast.error(data.message)
+        showErrorToast(data.message)
       }
     } catch (error) {
       console.error('Fetch comments error:', error)
-      toast.error(error.response?.data?.message || error.message)
+      showErrorToast(error.response?.data?.message || error.message)
     } finally {
       setLoading(false)
     }

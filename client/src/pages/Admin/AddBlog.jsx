@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import { assets, blogCategories } from "../../assets/assets"
 import Quill from 'quill'
 import { useAppContext } from "../../context/AppContext"
-import {toast} from "sonner"
+import { showSuccessToast, showErrorToast } from "../../utils/toast.js"
 import {parse} from "marked"
 
 const AddBlog = () => {
@@ -21,7 +21,7 @@ const AddBlog = () => {
   const [generationStage, setGenerationStage] = useState('')
 
   const generateContent = async() => {
-    if(!title) return toast.error("Please enter a title")
+    if(!title) return showErrorToast("Please enter a title")
 
     try {
         setLoading(true);
@@ -42,15 +42,16 @@ const AddBlog = () => {
                 quillRef.current.root.innerHTML = parse(data.data);
                 setLoading(false);
                 setGenerationStage('');
+                showSuccessToast('Content generated successfully! ✨');
             }, 400);
         } else {
-            toast.error(data.message)
+            showErrorToast(data.message || 'Failed to generate content')
             setLoading(false);
             setGenerationStage('');
         }
     } catch (error) {
         console.error("Generate content error:", error);
-        toast.error(error.response?.data?.message || error.message || "Failed to generate content")
+        showErrorToast(error.response?.data?.message || error.message || "Failed to generate content")
         setLoading(false);
         setGenerationStage('');
     }
@@ -60,22 +61,22 @@ const AddBlog = () => {
     e.preventDefault();
     
     if (!featuredImage) {
-      toast.error('Please select a featured image');
+      showErrorToast('Please select a featured image');
       return;
     }
     
     if (!title.trim()) {
-      toast.error('Please enter a title');
+      showErrorToast('Please enter a title');
       return;
     }
     
     if (!subTitle.trim()) {
-      toast.error('Please enter a subtitle');
+      showErrorToast('Please enter a subtitle');
       return;
     }
     
     if (!category) {
-      toast.error('Please select a category');
+      showErrorToast('Please select a category');
       return;
     }
 
@@ -98,7 +99,7 @@ const AddBlog = () => {
       })
 
       if(data.success){
-        toast.success(data.message || 'Blog added successfully!')
+        showSuccessToast(data.message || 'Blog published successfully! 🎉')
         setFeaturedImage(false)
         setTitle('')
         setSubTitle('')
@@ -106,12 +107,12 @@ const AddBlog = () => {
         setCategory('Startup')
         setIsPublished(false)
       }else{
-        toast.error(data.message || 'Failed to add blog')
+        showErrorToast(data.message || 'Failed to add blog')
       }
       
     } catch (error) {
       console.error('Add blog error:', error);
-      toast.error(error.response?.data?.message || error.message || 'Failed to add blog')
+      showErrorToast(error.response?.data?.message || error.message || 'Failed to add blog')
     }finally{
       setIsAdding(false)
     }
@@ -310,7 +311,7 @@ const AddBlog = () => {
                   ) : (
                     <>
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                       <span>Generate with AI</span>
                     </>

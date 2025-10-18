@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import BlogTableItem from '../../components/Admin/BlogTableItem'
 import { useAppContext } from "../../context/AppContext"
-import { toast } from "sonner"
+import { showSuccessToast, showErrorToast } from "../../utils/toast"
 
 const ListBlog = () => {
   const [blogs, setBlogs] = useState([])
@@ -29,7 +29,7 @@ const ListBlog = () => {
       if (data.success) {
         setBlogs(data.data || [])
       } else {
-        toast.error(data.message)
+        showErrorToast(data.message)
       }
     } catch (error) {
       console.error('Fetch blogs error:', error);
@@ -37,9 +37,9 @@ const ListBlog = () => {
       console.error('Error data:', error.response?.data);
       
       if (error.response?.status === 401) {
-        toast.error('Authentication failed. Please login again.');
+        showErrorToast('Authentication failed. Please login again.');
       } else {
-        toast.error(error.response?.data?.message || error.message)
+        showErrorToast(error.response?.data?.message || error.message)
       }
     } finally {
       setLoading(false);
@@ -60,7 +60,7 @@ const ListBlog = () => {
         }, 100);
       } else {
         setLoading(false);
-        toast.error('Please login to access admin panel');
+        showErrorToast('Please login to access admin panel');
       }
     }
   }, [token]) // Depend on token

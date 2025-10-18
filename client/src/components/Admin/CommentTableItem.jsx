@@ -1,6 +1,6 @@
 import React from 'react'
 import { useAppContext } from '../../context/AppContext'
-import { toast } from 'sonner'
+import { showSuccessToast, showErrorToast } from '../../utils/toast'
 import Moment from 'moment'
 
 const CommentTableItem = ({ comment, index, fetchComments }) => {
@@ -8,10 +8,9 @@ const CommentTableItem = ({ comment, index, fetchComments }) => {
 
   const approveComment = async () => {
     try {
-      // Use POST method and send commentId in body to match your backend route
       const { data } = await axios.post(
         `/api/v1/admin/approve-comment`,
-        { commentId: comment._id }, // Send in body, not URL params
+        { commentId: comment._id }, 
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -20,14 +19,14 @@ const CommentTableItem = ({ comment, index, fetchComments }) => {
       )
       
       if (data.success) {
-        toast.success('Comment approved successfully')
+        showSuccessToast('Comment approved successfully')
         fetchComments()
       } else {
-        toast.error(data.message)
+        showErrorToast(data.message)
       }
     } catch (error) {
       console.error('Approve comment error:', error)
-      toast.error(error.response?.data?.message || error.message)
+      showErrorToast(error.response?.data?.message || error.message)
     }
   }
 
@@ -36,10 +35,9 @@ const CommentTableItem = ({ comment, index, fetchComments }) => {
     if (!confirm) return
 
     try {
-      // Use POST method and send commentId in body to match your backend route
       const { data } = await axios.post(
         `/api/v1/admin/delete-comment`,
-        { commentId: comment._id }, // Send in body, not URL params
+        { commentId: comment._id }, 
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -48,14 +46,14 @@ const CommentTableItem = ({ comment, index, fetchComments }) => {
       )
       
       if (data.success) {
-        toast.success('Comment deleted successfully')
+        showSuccessToast('Comment deleted successfully')
         fetchComments()
       } else {
-        toast.error(data.message)
+        showErrorToast(data.message)
       }
     } catch (error) {
       console.error('Delete comment error:', error)
-      toast.error(error.response?.data?.message || error.message)
+      showErrorToast(error.response?.data?.message || error.message)
     }
   }
 
