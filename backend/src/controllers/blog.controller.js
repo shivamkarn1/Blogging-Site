@@ -4,6 +4,7 @@ import { Blog } from "../models/blog.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Comment } from "../models/comment.model.js";
+import main from "../config/gemini.js";
 
 
 
@@ -218,6 +219,30 @@ const getAllBlogsAdmin = asyncHandler(async (req, res) => {
     }
 });
 
+const generateContent = asyncHandler(async(req,res)=>{
+    console.log("=== GENERATE CONTENT DEBUG ===");
+    console.log("Request body:", req.body);
+    
+    const {prompt} = req.body;
+    
+    if (!prompt || prompt.trim() === '') {
+        console.log("Error: No prompt provided");
+        throw new ApiError(400, "Prompt is required");
+    }
+    
+    console.log("Prompt:", prompt);
+    
+    try {
+        console.log("Calling main function...");
+        const content = await main(prompt + ' Generate a Blog Content for this topic in simple text format');
+        console.log("Content generated:", content ? "Success" : "Failed");
+        
+        return res.status(200).json(new ApiResponse(200, content, "Content generated Successfully"));
+    } catch (error) {
+        console.error('Generate content error:', error);
+        throw new ApiError(500, error.message || "Failed to generate content with AI");
+    }
+});
 
 
 
@@ -230,5 +255,6 @@ export {
     togglePublish,
     updateBlog,
     addComment,
-    getBlogComments
+    getBlogComments,
+    generateContent
 }

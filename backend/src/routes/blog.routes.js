@@ -3,6 +3,7 @@ import {
     addBlog, 
     addComment, 
     deleteBlogById, 
+    generateContent, 
     getAllBlog, 
     getAllBlogsAdmin,
     getBlogById, 
@@ -28,5 +29,5 @@ blogRouter.post("/add",upload.single('featuredImage'),auth,addBlog)
 blogRouter.post('/delete',auth,deleteBlogById)
 blogRouter.post("/toggle-publish",auth,togglePublish)
 blogRouter.patch("/:blogId", auth, upload.single('featuredImage'), updateBlog)
-
+blogRouter.post("/generate",auth,generateContent)
 export default blogRouter;

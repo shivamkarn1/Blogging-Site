@@ -3,6 +3,7 @@ import { assets, blogCategories } from "../../assets/assets"
 import Quill from 'quill'
 import { useAppContext } from "../../context/AppContext"
 import {toast} from "sonner"
+import {parse} from "marked"
 
 const AddBlog = () => {
   const {axios} = useAppContext()
@@ -16,7 +17,33 @@ const AddBlog = () => {
   const [subTitle, setSubTitle] = useState('')
   const [category, setCategory] = useState('Startup')
   const [isPublished, setIsPublished] = useState(false)
+  const [loading,setLoading] = useState(false)
 
+  const generateContent = async() => {
+    if(!title) return toast.error("Please enter a title")
+
+    try {
+        setLoading(true);
+        console.log("Sending request with title:", title);
+        
+        const {data} = await axios.post('/api/v1/blog/generate', {
+            prompt: title
+        });
+        
+        console.log("Response:", data);
+        
+        if(data.success){
+            quillRef.current.root.innerHTML = parse(data.data) 
+        } else {
+            toast.error(data.message)
+        }
+    } catch (error) {
+        console.error("Generate content error:", error);
+        toast.error(error.response?.data?.message || error.message || "Failed to generate content")
+    } finally {
+        setLoading(false)
+    }
+  }
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     
@@ -80,7 +107,6 @@ const AddBlog = () => {
     }
   }
 
-  const generateContent = async () => {}
 
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
@@ -179,14 +205,61 @@ const AddBlog = () => {
               <div className="relative">
                 <div 
                   ref={editorRef}
-                  className="min-h-[20rem] border border-amber-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-400 transition-all"
+                  className={`min-h-[20rem] border border-amber-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-orange-400 focus-within:border-orange-400 transition-all ${loading ? 'opacity-50' : ''}`}
                 ></div>
+                
+                {/* Enhanced Loading Overlay */}
+                {loading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg">
+                    <div className="text-center">
+                      <div className="relative">
+                        {/* Outer spinning ring */}
+                        <div className="w-12 h-12 border-4 border-orange-200 rounded-full animate-spin"></div>
+                        {/* Inner spinning dot */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                      </div>
+                      <div className="mt-4 space-y-1">
+                        <p className="text-orange-600 font-medium text-sm">Generating content with AI...</p>
+                        <p className="text-slate-500 text-xs">This may take a few seconds</p>
+                      </div>
+                      
+                      {/* Animated dots */}
+                      <div className="flex justify-center space-x-1 mt-3">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Enhanced Generate Button */}
                 <button 
+                  disabled={loading}
                   type="button" 
                   onClick={generateContent} 
-                  className="absolute bottom-4 right-4 text-sm font-medium text-orange-700 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 border border-amber-300 transition-all px-4 py-2 rounded-md shadow-sm"
+                  className={`absolute bottom-4 right-4 text-sm font-medium transition-all px-4 py-2 rounded-lg shadow-sm flex items-center gap-2 min-w-[140px] justify-center ${
+                    loading 
+                      ? 'text-orange-500 bg-orange-50 border border-orange-200 cursor-not-allowed' 
+                      : 'text-orange-700 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 border border-amber-300 hover:shadow-md active:scale-95'
+                  }`}
                 >
-                  Generate with AI
+                  {loading ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Generate with AI
+                    </>
+                  )}
                 </button>
               </div>
             </div>
