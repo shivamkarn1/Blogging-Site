@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
-import connectDB from './db/db.js';
+import connectDB from './config/db.js';
 import adminRouter from "./routes/admin.routes.js"
+import blogRouter from './routes/blog.routes.js';
 
 const app = express();
 
@@ -31,7 +32,7 @@ await connectDB()
 
 // Routes 
 app.use('/api/v1/admin',adminRouter)
-
+app.use('/api/v1/blog',blogRouter)
 
 const PORT = process.env.PORT || 8000;
 
