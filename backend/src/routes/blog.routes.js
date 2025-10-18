@@ -23,10 +23,10 @@ blogRouter.post('/add-comment',addComment)
 blogRouter.get("/comments/:blogId",getBlogComments)
 
 // PROTECTED ROUTES
-blogRouter.post("/add",upload.single('image'),auth,addBlog)
+blogRouter.post("/add",upload.single('featuredImage'),auth,addBlog)
 blogRouter.post('/delete',auth,deleteBlogById)
 blogRouter.post("/toggle-publish",auth,togglePublish)
-blogRouter.patch("/:blogId", auth, upload.single('image'), updateBlog)
+blogRouter.patch("/:blogId", auth, upload.single('featuredImage'), updateBlog)
 
 
 export default blogRouter;
