@@ -28,15 +28,35 @@ const getAllComments = asyncHandler(async(req,res)=>{
 })
 
 const getDashboardData = asyncHandler(async(req,res)=>{
-    const recentBlogs = await Blog.find({}).sort({createdAt:-1}).limit(6);
-    const totalBlogs = await Blog.countDocuments()
-    const totalComments = await Comment.countDocuments()
-
-    const drafts = await Blog.countDocuments({isPublished:false})
-    const dashboardData = {
-        recentBlogs,totalBlogs,totalComments,drafts
+    try {
+        const totalPublishedBlogs = await Blog.countDocuments({ isPublished: true })
+        
+        const totalComments = await Comment.countDocuments()
+        
+        const drafts = await Blog.countDocuments({ isPublished: false })
+        
+        // Get recent 6 blogs (both published and unpublished)
+        const recentBlogs = await Blog.find()
+            .sort({ createdAt: -1 })
+            .limit(6)
+            .select('title subTitle isPublished createdAt')
+        
+        const dashboardData = {
+            blogs: totalPublishedBlogs,
+            comments: totalComments,
+            drafts: drafts,
+            recentBlogs: recentBlogs
+        }
+        
+        console.log('Dashboard data being sent:', dashboardData); // Debug log
+        
+        return res
+            .status(200)
+            .json(new ApiResponse(200, dashboardData, "Dashboard data fetched successfully"))
+    } catch (error) {
+        console.error('Dashboard controller error:', error);
+        throw new ApiError(500, error?.message || "Something went wrong while fetching dashboard data")
     }
-    return res.status(200).json(new ApiResponse(200,dashboardData,"Dashboard Data fetched successfully"))
 })
 
 const deleteCommentById = asyncHandler(async(req,res)=>{
