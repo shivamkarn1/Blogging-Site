@@ -1,5 +1,23 @@
+import { useRef } from "react"
 import { assets } from "../assets/assets"
+import { useAppContext } from "../context/AppContext"
 const Header = () => {
+
+  const { setInput, input } = useAppContext()
+  const inputRef = useRef()
+
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    setInput(inputRef.current.value)
+  }
+
+  const onClear = () => {
+    setInput('')
+    inputRef.current.value = ''
+  }
+
+
+
   return (
     <div className="mx-8 sm:mx-16 xl:mx-24 relative">
       <div className="text-center mt-20 mb-8 relative z-10">
@@ -11,18 +29,19 @@ const Header = () => {
         </div>
 
         <h1 className="text-3xl sm:text-5xl font-extrabold sm:leading-tight text-amber-900">
-          Your own <span className="text-amber-600">Blogging</span> <br/> Site.
+          Your own <span className="text-amber-600">Blogging</span> <br /> Site.
         </h1>
 
         <p className="mt-4 text-amber-700 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
           Share ideas, stories, and expertise—write with clarity, connect with readers, and grow your audience.
         </p>
 
-        <form className="mt-6 flex items-center justify-center" role="search" aria-label="Search blogs">
+        <form onSubmit={onSubmitHandler} className="mt-6 flex items-center justify-center" role="search" aria-label="Search blogs">
           <div className="w-full max-w-2xl">
             <label htmlFor="search" className="sr-only">Search blogs</label>
             <div className="flex overflow-hidden rounded-full border border-amber-200 bg-white shadow-lg">
               <input
+                ref={inputRef}
                 id="search"
                 name="search"
                 type="search"
@@ -45,6 +64,12 @@ const Header = () => {
           </div>
         </form>
 
+      </div>
+
+      <div className="text-center">
+        {
+          input && <button onClick={onClear} className="border font-light text-xs py-1 px-3 rounded-sm shadow-custom-sm cursor-pointer">Clear Search</button>
+        }
       </div>
 
       {/* decorative gradient background */}

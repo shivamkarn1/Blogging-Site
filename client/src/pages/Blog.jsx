@@ -5,30 +5,75 @@ import Navbar from "../components/Navbar"
 import Moment from 'moment'
 import Footer from "../components/Footer"
 import Loader from "../components/Loader"
-
+import { useAppContext } from '../context/AppContext'
+import {toast} from "sonner"
 
 const Blog = () => {
   const {id} = useParams()
 
+  const {axios} = useAppContext()
+
   const [data,setData] = useState(null)
   const [comments,setComments] = useState([])
-
   const [name,setName] = useState('')
   const [content,setContent] = useState('')
 
   const fetchBlogData = async()=>{
-    const data = blog_data.find(item=>item._id ===id)
-    setData(data)
+    try {
+      const {data} = await axios.get(`/api/v1/blog/${id}`)
+      if(data.success) {
+        setData(data.data) // Changed from data.blog to data.data
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message)
+    }
   }
 
   const fetchComments = async ()=>{
-    setComments(comments_data)
-
+    try {
+      // Fixed: Use GET method and pass actual blogId in URL
+      const {data} = await axios.get(`/api/v1/blog/comments/${id}`)
+      if(data.success){
+        setComments(data.data.comments) // Access comments from data.data.comments
+      }else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      console.error('Fetch comments error:', error)
+      toast.error(error.response?.data?.message || error.message)
+    }
   }
+
   const addComment = async(e)=>{
-    e.preventdefault()
-  }
+    e.preventDefault() 
+    
+    if(!name.trim() || !content.trim()) {
+      toast.error('Please fill in all fields')
+      return
+    }
 
+    try {
+      const {data} = await axios.post('/api/v1/blog/add-comment', {
+        blogId: id,
+        name: name.trim(),
+        content: content.trim()
+      })
+      
+      if(data.success) {
+        toast.success('Comment added successfully!')
+        setName('')
+        setContent('')
+        fetchComments() // Refresh comments
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      console.error('Add comment error:', error)
+      toast.error(error.response?.data?.message || error.message)
+    }
+  }
 
   useEffect(() => {
     fetchBlogData()
@@ -70,7 +115,7 @@ const Blog = () => {
       </div>
 
       <div className='mx-5 max-w-5xl md:mx-auto my-10 mt-6'>
-        <img src={data.image} alt="" className='rounded-3xl mb-5 shadow-lg border border-amber-200' />
+        <img src={data.featuredImage} alt="" className='rounded-3xl mb-5 shadow-lg border border-amber-200' />
         <div className='rich-text max-w-3xl mx-auto text-amber-800' dangerouslySetInnerHTML={{__html:data.description}}></div>
       </div>
 
