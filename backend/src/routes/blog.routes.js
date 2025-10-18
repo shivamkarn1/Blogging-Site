@@ -4,6 +4,7 @@ import {
     addComment, 
     deleteBlogById, 
     getAllBlog, 
+    getAllBlogsAdmin,
     getBlogById, 
     getBlogComments, 
     togglePublish, 
@@ -12,21 +13,20 @@ import {
 import { upload } from '../middleware/multer.middleware.js';
 import {auth} from "../middleware/auth.middleware.js"
 
-
 const blogRouter = Router();
 
 // NON PROTECTED ROUTES
-blogRouter.get('/all',getAllBlog)
+blogRouter.get('/all',getAllBlog) // This returns only published blogs
 blogRouter.get("/:blogId",getBlogById)
 
 blogRouter.post('/add-comment',addComment)
 blogRouter.get("/comments/:blogId",getBlogComments)
 
 // PROTECTED ROUTES
+blogRouter.get("/admin/all", auth, getAllBlogsAdmin) 
 blogRouter.post("/add",upload.single('featuredImage'),auth,addBlog)
 blogRouter.post('/delete',auth,deleteBlogById)
 blogRouter.post("/toggle-publish",auth,togglePublish)
 blogRouter.patch("/:blogId", auth, upload.single('featuredImage'), updateBlog)
-
 
 export default blogRouter;

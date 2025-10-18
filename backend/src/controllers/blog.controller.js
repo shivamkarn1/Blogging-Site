@@ -221,12 +221,26 @@ const getBlogComments = asyncHandler(async (req, res) => {
     );
 });
 
+const getAllBlogsAdmin = asyncHandler(async (req, res) => {
+    try {
+        // Get ALL blogs both published and unpublished for admin
+        const blogs = await Blog.find({}).sort({ createdAt: -1 });
+        
+        return res
+            .status(200)
+            .json(new ApiResponse(200, blogs, "All Blogs Fetched Successfully (Admin)"));
+    } catch (error) {
+        throw new ApiError(500, error?.message || "Something went wrong while fetching blogs");
+    }
+});
+
 
 
 
 export {
     addBlog,
     getAllBlog,
+    getAllBlogsAdmin,
     getBlogById,
     deleteBlogById,
     togglePublish,
