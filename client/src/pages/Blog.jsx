@@ -22,7 +22,7 @@ const Blog = () => {
     try {
       const {data} = await axios.get(`/api/v1/blog/${id}`)
       if(data.success) {
-        setData(data.data) // Changed from data.blog to data.data
+        setData(data.data)
       } else {
         toast.error(data.message)
       }
@@ -33,10 +33,9 @@ const Blog = () => {
 
   const fetchComments = async ()=>{
     try {
-      // Fixed: Use GET method and pass actual blogId in URL
       const {data} = await axios.get(`/api/v1/blog/comments/${id}`)
       if(data.success){
-        setComments(data.data.comments) // Access comments from data.data.comments
+        setComments(data.data.comments)
       }else{
         toast.error(data.message)
       }
@@ -63,9 +62,10 @@ const Blog = () => {
       
       if(data.success) {
         toast.success('Comment added successfully!')
+        // Clear the input fields
         setName('')
         setContent('')
-        fetchComments() // Refresh comments
+        fetchComments() 
       } else {
         toast.error(data.message)
       }
@@ -79,6 +79,7 @@ const Blog = () => {
     fetchBlogData()
     fetchComments()
   }, [id])
+
   return data ? (
     <div className='relative min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-rose-50'>
       {/* Decorative gradient background */}
@@ -171,6 +172,7 @@ const Blog = () => {
                     </svg>
                   </div>
                   <input 
+                    value={name}
                     onChange={(e)=>setName(e.target.value)}
                     type="text" 
                     placeholder='Enter your name' 
@@ -183,6 +185,7 @@ const Blog = () => {
               <div>
                 <label className='block text-sm font-semibold text-amber-900 mb-2'>Your Comment</label>
                 <textarea 
+                  value={content}
                   onChange={(e)=>setContent(e.target.value)}
                   placeholder='What are your thoughts?'
                   rows={5}
