@@ -1,17 +1,30 @@
 import { useEffect, useState } from 'react'
-import { blog_data } from '../../assets/assets'
 import BlogTableItem from '../../components/Admin/BlogTableItem'
 import { useAppContext } from "../../context/AppContext"
-import { toast } from "sonner" // Add this import
+import { toast } from "sonner"
 
 const ListBlog = () => {
   const [blogs, setBlogs] = useState([])
-  const { axios } = useAppContext()
+  const [loading, setLoading] = useState(true)
+  const { axios, token } = useAppContext() // Get token from context
 
   const fetchBlogs = async () => {
+    if (!token) {
+      console.log('No token available, skipping fetch');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { data } = await axios.get('/api/v1/blog/all')
-      console.log('Fetch blogs response:', data); 
+      setLoading(true);
+      console.log('Fetching blogs with token:', token ? 'Present' : 'Missing');
+      
+      const { data } = await axios.get('/api/v1/blog/admin/all', {
+        headers: {
+          'Authorization': `Bearer ${token}` // Explicitly set the token
+        }
+      })
+      console.log('Fetch blogs response:', data);
       
       if (data.success) {
         setBlogs(data.data || [])
@@ -20,13 +33,48 @@ const ListBlog = () => {
       }
     } catch (error) {
       console.error('Fetch blogs error:', error);
-      toast.error(error.response?.data?.message || error.message)
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      
+      if (error.response?.status === 401) {
+        toast.error('Authentication failed. Please login again.');
+      } else {
+        toast.error(error.response?.data?.message || error.message)
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
+  // Wait for token to be available before fetching
   useEffect(() => {
-    fetchBlogs()
-  }, [])
+    if (token) {
+      fetchBlogs();
+    } else {
+      // Token might be loading from localStorage
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        // Token exists but context hasn't updated yet, wait a bit
+        setTimeout(() => {
+          fetchBlogs();
+        }, 100);
+      } else {
+        setLoading(false);
+        toast.error('Please login to access admin panel');
+      }
+    }
+  }, [token]) // Depend on token
+
+  if (loading) {
+    return (
+      <div className='p-6 bg-gradient-to-br from-amber-50 via-yellow-50 to-rose-50 min-h-screen'>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+          <p className="ml-4 text-amber-600">Loading blogs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='p-6 bg-gradient-to-br from-amber-50 via-yellow-50 to-rose-50 min-h-screen'>
