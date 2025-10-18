@@ -1,59 +1,94 @@
 import React from 'react'
-import { assets } from '../../assets/assets';
+import { useAppContext } from '../../context/AppContext'
+import { toast } from 'sonner'
+import Moment from 'moment'
 
-const CommentTableItem = ({comment,fetchComments}) => {
-  const {blog,createdAt , _id} = comment;
-  const BlogDate = new Date(createdAt)
-  
+const CommentTableItem = ({ comment, index, fetchComments }) => {
+  const { axios, token } = useAppContext()
+
+  const approveComment = async () => {
+    try {
+      // Use POST method and send commentId in body to match your backend route
+      const { data } = await axios.post(
+        `/api/v1/admin/approve-comment`,
+        { commentId: comment._id }, // Send in body, not URL params
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      
+      if (data.success) {
+        toast.success('Comment approved successfully')
+        fetchComments()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      console.error('Approve comment error:', error)
+      toast.error(error.response?.data?.message || error.message)
+    }
+  }
+
+  const deleteComment = async () => {
+    const confirm = window.confirm('Are you sure you want to delete this comment?')
+    if (!confirm) return
+
+    try {
+      // Use POST method and send commentId in body to match your backend route
+      const { data } = await axios.post(
+        `/api/v1/admin/delete-comment`,
+        { commentId: comment._id }, // Send in body, not URL params
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      
+      if (data.success) {
+        toast.success('Comment deleted successfully')
+        fetchComments()
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      console.error('Delete comment error:', error)
+      toast.error(error.response?.data?.message || error.message)
+    }
+  }
+
   return (
-    <tr className="border-b border-amber-100 hover:bg-amber-50/50 transition-colors">
-      <td className="px-6 py-4">
+    <tr className="hover:bg-amber-50">
+      <td className='px-6 py-4'>
         <div className="space-y-2">
-          <div className="flex items-start gap-2">
-            <span className="font-semibold text-amber-700 text-sm min-w-fit">Blog:</span>
-            <span className="text-amber-900 text-sm font-medium">{blog.title}</span>
-          </div>
-          
-          <div className="flex items-start gap-2">
-            <span className="font-semibold text-amber-700 text-sm min-w-fit">Name:</span>
-            <span className="text-amber-800 text-sm">{comment.name}</span>
-          </div>
-          
-          <div className="flex items-start gap-2">
-            <span className="font-semibold text-amber-700 text-sm min-w-fit">Comment:</span>
-            <span className="text-amber-800 text-sm leading-relaxed">{comment.content}</span>
-          </div>
+          <p className="font-medium text-amber-900">
+            {comment.blogId?.title || comment.blogId || 'Unknown Blog'}
+          </p>
+          <p className="text-sm text-amber-700">
+            <strong>{comment.name}:</strong> {comment.content}
+          </p>
         </div>
       </td>
-
-      <td className='px-6 py-4 max-sm:hidden'>
-        <span className="text-amber-600 text-sm font-medium">
-          {BlogDate.toLocaleDateString()}
-        </span>
+      <td className='px-6 py-4 max-sm:hidden text-amber-600'>
+        {Moment(comment.createdAt).format('MMM DD, YYYY')}
       </td>
-
       <td className='px-6 py-4'>
-        <div className="flex items-center gap-3">
-          {!comment.isApproved ? (
-            <button className="p-1.5 rounded-lg hover:bg-emerald-100 transition-colors group">
-              <img 
-                src={assets.tick_icon} 
-                alt="Approve comment"
-                className='w-5 h-5 group-hover:scale-110 transition-transform cursor-pointer'
-              />
+        <div className="flex gap-2">
+          {!comment.isApproved && (
+            <button
+              onClick={approveComment}
+              className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+            >
+              Approve
             </button>
-          ) : (
-            <span className='inline-flex items-center text-xs border border-emerald-600 text-emerald-700 bg-emerald-100 rounded-full px-3 py-1 font-medium'>
-              Approved
-            </span>
           )}
-          
-          <button className="p-1.5 rounded-lg hover:bg-red-100 transition-colors group">
-            <img 
-              src={assets.bin_icon} 
-              alt="Delete comment"
-              className='w-5 h-5 group-hover:scale-110 transition-transform cursor-pointer'
-            />
+          <button
+            onClick={deleteComment}
+            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors"
+          >
+            Delete
           </button>
         </div>
       </td>
