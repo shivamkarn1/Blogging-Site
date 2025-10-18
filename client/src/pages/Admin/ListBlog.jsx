@@ -1,23 +1,38 @@
 import { useEffect, useState } from 'react'
 import { blog_data } from '../../assets/assets'
 import BlogTableItem from '../../components/Admin/BlogTableItem'
+import { useAppContext } from "../../context/AppContext"
+import { toast } from "sonner" // Add this import
 
 const ListBlog = () => {
-  const [blogs,setBlogs] = useState([])
+  const [blogs, setBlogs] = useState([])
+  const { axios } = useAppContext()
 
-  const fetchBlogs = async()=>{
-    setBlogs(blog_data)
+  const fetchBlogs = async () => {
+    try {
+      const { data } = await axios.get('/api/v1/blog/all')
+      console.log('Fetch blogs response:', data); 
+      
+      if (data.success) {
+        setBlogs(data.data || [])
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      console.error('Fetch blogs error:', error);
+      toast.error(error.response?.data?.message || error.message)
+    }
   }
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchBlogs()
-  },[])
+  }, [])
 
   return (
     <div className='p-6 bg-gradient-to-br from-amber-50 via-yellow-50 to-rose-50 min-h-screen'>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-amber-900 mb-2">All Blogs</h1>
-        <p className="text-amber-600">Manage and organize your blog posts</p>
+        <p className="text-amber-600">Manage and organize your blog posts ({blogs.length} posts)</p>
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg border border-amber-100 overflow-hidden">
@@ -34,8 +49,8 @@ const ListBlog = () => {
             </thead>
             <tbody className="divide-y divide-amber-100">
               {blogs.length > 0 ? (
-                blogs.map((blog,index)=>{
-                  return <BlogTableItem key={blog._id} blog={blog} fetchBlogs={fetchBlogs} index={index+1}/>
+                blogs.map((blog, index) => {
+                  return <BlogTableItem key={blog._id} blog={blog} fetchBlogs={fetchBlogs} index={index + 1} />
                 })
               ) : (
                 <tr>
