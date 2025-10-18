@@ -25,7 +25,7 @@ const Comments = () => {
       })
       
       if (data.success) {
-        setComments(data.data || []) // Changed from data.content to data.data
+        setComments(data.data || []) 
       } else {
         toast.error(data.message)
       }
