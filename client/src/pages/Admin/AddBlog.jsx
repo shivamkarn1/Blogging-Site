@@ -18,31 +18,41 @@ const AddBlog = () => {
   const [isPublished, setIsPublished] = useState(false)
 
   const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    
+    // Manual validation for file input
+    if (!featuredImage) {
+      toast.error('Please select a featured image');
+      return;
+    }
+    
+    if (!title.trim()) {
+      toast.error('Please enter a title');
+      return;
+    }
+    
+    if (!subTitle.trim()) {
+      toast.error('Please enter a subtitle');
+      return;
+    }
+    
+    if (!category) {
+      toast.error('Please select a category');
+      return;
+    }
+
     try {
-      e.preventDefault();
       setIsAdding(true)
 
-      // Create FormData and append individual fields (NOT as stringified object)
       const formData = new FormData();
       
-      // Append each field separately
-      formData.append('title', title);
-      formData.append('subTitle', subTitle);
+      formData.append('title', title.trim());
+      formData.append('subTitle', subTitle.trim());
       formData.append('description', quillRef.current.root.innerHTML);
       formData.append('category', category);
-      formData.append('isPublished', isPublished.toString()); // Convert boolean to string
-      
-      // Append the image file with the correct field name
-      if (featuredImage) {
-        formData.append('featuredImage', featuredImage);
-      }
+      formData.append('isPublished', isPublished.toString());
+      formData.append('featuredImage', featuredImage);
 
-      // Debug: Log what we're sending
-      console.log('FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-      
       const {data} = await axios.post('/api/v1/blog/add', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -50,7 +60,7 @@ const AddBlog = () => {
       })
 
       if(data.success){
-        toast.success(data.message)
+        toast.success(data.message || 'Blog added successfully!')
         // Reset form
         setFeaturedImage(false)
         setTitle('')
@@ -59,12 +69,12 @@ const AddBlog = () => {
         setCategory('Startup')
         setIsPublished(false)
       }else{
-        toast.error(data.message)
+        toast.error(data.message || 'Failed to add blog')
       }
       
     } catch (error) {
       console.error('Add blog error:', error);
-      toast.error(error.response?.data?.message || error.message)
+      toast.error(error.response?.data?.message || error.message || 'Failed to add blog')
     }finally{
       setIsAdding(false)
     }
@@ -92,10 +102,12 @@ const AddBlog = () => {
             {/* Upload Thumbnail */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-3">
-                Featured Image
+                Featured Image *
               </label>
               <label htmlFor="featuredImage" className="block group">
-                <div className="relative h-48 w-full rounded-lg border-2 border-dashed border-amber-300 overflow-hidden cursor-pointer hover:border-orange-400 transition-colors bg-amber-50/50">
+                <div className={`relative h-48 w-full rounded-lg border-2 border-dashed overflow-hidden cursor-pointer transition-colors bg-amber-50/50 ${
+                  featuredImage ? 'border-green-300' : 'border-amber-300 hover:border-orange-400'
+                }`}>
                   <img 
                     src={!featuredImage ? assets.upload_area : URL.createObjectURL(featuredImage)} 
                     alt="" 
@@ -103,16 +115,30 @@ const AddBlog = () => {
                   />
                   {!featuredImage && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-slate-500 text-sm">Click to upload thumbnail</span>
+                      <div className="text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-amber-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <span className="text-slate-500 text-sm">Click to upload featured image</span>
+                        <p className="text-xs text-slate-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                      </div>
+                    </div>
+                  )}
+                  {featuredImage && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
                     </div>
                   )}
                 </div>
+                {/* REMOVED required attribute and added manual validation */}
                 <input 
                   onChange={(e) => setFeaturedImage(e.target.files[0])} 
                   type="file" 
                   id="featuredImage" 
                   hidden 
-                  required 
+                  accept="image/*"
                 />
               </label>
             </div>
@@ -120,14 +146,13 @@ const AddBlog = () => {
             {/* Blog Title */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-3">
-                Title
+                Title *
               </label>
               <input 
                 onChange={e => setTitle(e.target.value)} 
                 value={title} 
                 type="text" 
                 placeholder="Enter a compelling title" 
-                required
                 className="w-full px-4 py-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 text-slate-900 placeholder-slate-400 transition-all"
               />
             </div>
@@ -135,14 +160,13 @@ const AddBlog = () => {
             {/* Sub Title */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-3">
-                Subtitle
+                Subtitle *
               </label>
               <input 
                 onChange={e => setSubTitle(e.target.value)} 
                 value={subTitle} 
                 type="text" 
                 placeholder="Add a brief description" 
-                required
                 className="w-full px-4 py-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 text-slate-900 placeholder-slate-400 transition-all"
               />
             </div>
@@ -150,7 +174,7 @@ const AddBlog = () => {
             {/* Blog Description */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-3">
-                Content
+                Content *
               </label>
               <div className="relative">
                 <div 
@@ -170,13 +194,12 @@ const AddBlog = () => {
             {/* Category */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-3">
-                Category
+                Category *
               </label>
               <div className="relative">
                 <select 
                   onChange={e => setCategory(e.target.value)} 
                   value={category}
-                  required
                   className="w-full px-4 py-3 rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 text-slate-900 bg-white transition-all cursor-pointer appearance-none pr-10"
                 >
                   <option value="">Select a category</option>
