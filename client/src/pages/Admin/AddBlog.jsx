@@ -4,7 +4,7 @@ import Quill from 'quill'
 import { useAppContext } from "../../context/AppContext"
 import {toast} from "sonner"
 import {parse} from "marked"
-
+// .ADDED AI INTEGRATION OF GEMINI AI TO CREATE CONTENT.
 const AddBlog = () => {
   const {axios} = useAppContext()
 
