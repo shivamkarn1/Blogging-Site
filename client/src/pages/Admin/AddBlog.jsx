@@ -18,41 +18,17 @@ const AddBlog = () => {
   const [category, setCategory] = useState('Startup')
   const [isPublished, setIsPublished] = useState(false)
   const [loading,setLoading] = useState(false)
-  const [typingProgress, setTypingProgress] = useState(0)
-
-  const typeContent = (content, speed = 10) => {
-    return new Promise((resolve) => {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = content;
-      const textContent = tempDiv.textContent || tempDiv.innerText;
-      const totalLength = textContent.length;
-      
-      let currentIndex = 0;
-      const interval = setInterval(() => {
-        currentIndex += Math.floor(Math.random() * 3) + 1;
-        
-        if (currentIndex >= totalLength) {
-          currentIndex = totalLength;
-          setTypingProgress(100);
-          clearInterval(interval);
-          setTimeout(() => {
-            quillRef.current.root.innerHTML = content;
-            resolve();
-          }, 200);
-        } else {
-          setTypingProgress(Math.floor((currentIndex / totalLength) * 100));
-        }
-      }, speed);
-    });
-  };
+  const [generationStage, setGenerationStage] = useState('')
 
   const generateContent = async() => {
     if(!title) return toast.error("Please enter a title")
 
     try {
         setLoading(true);
-        setTypingProgress(0);
+        setGenerationStage('thinking');
         console.log("Sending request with title:", title);
+        
+        setTimeout(() => setGenerationStage('writing'), 800);
         
         const {data} = await axios.post('/api/v1/blog/generate', {
             prompt: title
@@ -61,16 +37,22 @@ const AddBlog = () => {
         console.log("Response:", data);
         
         if(data.success){
-            await typeContent(parse(data.data));
+            setGenerationStage('finalizing');
+            setTimeout(() => {
+                quillRef.current.root.innerHTML = parse(data.data);
+                setLoading(false);
+                setGenerationStage('');
+            }, 400);
         } else {
             toast.error(data.message)
+            setLoading(false);
+            setGenerationStage('');
         }
     } catch (error) {
         console.error("Generate content error:", error);
         toast.error(error.response?.data?.message || error.message || "Failed to generate content")
-    } finally {
-        setLoading(false)
-        setTypingProgress(0)
+        setLoading(false);
+        setGenerationStage('');
     }
   }
 
@@ -249,52 +231,60 @@ const AddBlog = () => {
                 ></div>
                 
                 {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-50/98 via-orange-50/98 to-amber-50/98 backdrop-blur-md rounded-lg border border-orange-200/50 shadow-lg">
-                    <div className="text-center max-w-sm px-6">
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-xl">
+                    <div className="text-center">
                       
-                      <div className="relative inline-block mb-6">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 rounded-2xl blur-xl opacity-40 animate-pulse"></div>
-                        <div className="relative bg-gradient-to-br from-orange-500 to-amber-500 p-4 rounded-2xl shadow-lg">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      <div className="relative inline-block mb-5">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full blur-2xl opacity-50 animate-pulse"></div>
+                        
+                        <div className="relative">
+                          <svg className="w-20 h-20" viewBox="0 0 100 100">
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="40"
+                              fill="none"
+                              stroke="url(#gradient)"
+                              strokeWidth="6"
+                              strokeLinecap="round"
+                              strokeDasharray="251.2"
+                              strokeDashoffset="0"
+                              className="animate-[spin_1.5s_ease-in-out_infinite]"
+                            />
+                            <defs>
+                              <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#f97316" />
+                                <stop offset="100%" stopColor="#f59e0b" />
+                              </linearGradient>
+                            </defs>
                           </svg>
+                          
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-9 h-9 text-orange-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-1">
-                          AI Content Generation
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-bold text-slate-800">
+                          {generationStage === 'thinking' && 'Analyzing Topic...'}
+                          {generationStage === 'writing' && 'Creating Content...'}
+                          {generationStage === 'finalizing' && 'Almost Done!'}
                         </h3>
-                        <p className="text-sm text-slate-600">
-                          {typingProgress > 0 ? 'Writing your content' : 'Analyzing your topic'}
-                          <span className="inline-flex ml-1">
-                            <span className="animate-[bounce_1s_ease-in-out_infinite_0ms]">.</span>
-                            <span className="animate-[bounce_1s_ease-in-out_infinite_200ms]">.</span>
-                            <span className="animate-[bounce_1s_ease-in-out_infinite_400ms]">.</span>
-                          </span>
+                        <p className="text-sm text-slate-600 max-w-xs mx-auto">
+                          {generationStage === 'thinking' && 'Understanding your requirements'}
+                          {generationStage === 'writing' && 'AI is crafting your blog post'}
+                          {generationStage === 'finalizing' && 'Polishing the final touches'}
                         </p>
                       </div>
 
-                      <div className="w-full bg-slate-200 rounded-full h-2 mb-2 overflow-hidden shadow-inner">
-                        <div 
-                          className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
-                          style={{ width: `${typingProgress}%` }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_ease-in-out_infinite]"></div>
-                        </div>
+                      <div className="flex justify-center gap-1.5 mt-5">
+                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[bounce_1s_ease-in-out_infinite]"></div>
+                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.2s]"></div>
+                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[bounce_1s_ease-in-out_infinite_0.4s]"></div>
                       </div>
-                      
-                      <p className="text-xs font-medium text-slate-500">
-                        {typingProgress > 0 ? `${typingProgress}% complete` : 'Preparing...'}
-                      </p>
-
-                      {typingProgress > 0 && (
-                        <div className="mt-4 flex items-center justify-center gap-1.5">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-[pulse_1.4s_ease-in-out_infinite]"></div>
-                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-[pulse_1.4s_ease-in-out_infinite_0.2s]"></div>
-                          <div className="w-2 h-2 bg-orange-500 rounded-full animate-[pulse_1.4s_ease-in-out_infinite_0.4s]"></div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
