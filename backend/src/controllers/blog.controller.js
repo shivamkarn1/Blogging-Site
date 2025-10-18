@@ -1,9 +1,12 @@
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
-import fs from 'fs';
 import { Blog } from "../models/blog.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { Comment } from "../models/comment.model.js";
+
+
+
 
 const addBlog = asyncHandler(async (req, res) => {
     // Debug consoles
@@ -79,6 +82,9 @@ const deleteBlogById = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Blog not found/ Doesn't Exits")
     }
     await Blog.findByIdAndDelete(blogId);
+
+    // ALso delte all the comments of this blog
+    await Comment.deleteMany({blog:blogId});
     return res.json(new ApiResponse(200, {}, "Blog Deleted Successfully"))
 })
 
@@ -128,6 +134,93 @@ const updateBlog = asyncHandler(async (req, res) => {
 
 })
 
+const addComment = asyncHandler(async (req, res) => {
+    const { blogId, name, content } = req.body;
+    
+    // Validate required fields
+    if (!blogId || !name || !content) {
+        throw new ApiError(400, "Blog ID, name, and content are required");
+    }
+    
+    const existingBlog = await Blog.findById(blogId);
+    if (!existingBlog) {
+        throw new ApiError(404, "Blog not found");
+    }
+    
+    // Validate content length
+    if (content.trim().length < 1) {
+        throw new ApiError(400, "Comment content cannot be empty");
+    }
+    
+    if (content.length > 1000) {
+        throw new ApiError(400, "Comment content cannot exceed 1000 characters");
+    }
+    
+    if (name.trim().length < 1) {
+        throw new ApiError(400, "Name cannot be empty");
+    }
+    
+    if (name.length > 100) {
+        throw new ApiError(400, "Name cannot exceed 100 characters");
+    }
+    
+    const comment = await Comment.create({
+        blogId: blogId, 
+        name: name.trim(),
+        content: content.trim()
+    });
+    
+    return res
+        .status(201)
+        .json(new ApiResponse(201, { comment }, "Comment added successfully"));
+});
+
+const getBlogComments = asyncHandler(async (req, res) => {
+    const { blogId } = req.params;
+    
+    if (!blogId) {
+        throw new ApiError(400, "Blog ID is required");
+    }
+    
+    // Check if blog exists
+    const existingBlog = await Blog.findById(blogId);
+    if (!existingBlog) {
+        throw new ApiError(404, "Blog not found");
+    }
+    
+    // Get pagination parameters from query
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    
+    const comments = await Comment.find({ 
+        blogId: blogId 
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .select('name content createdAt');
+    
+    const totalComments = await Comment.countDocuments({ 
+        blogId: blogId 
+    });
+    
+    const totalPages = Math.ceil(totalComments / limit);
+    
+    return res.status(200).json(
+        new ApiResponse(200, {
+            comments,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalComments,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        }, "Comments fetched successfully")
+    );
+});
+
 
 
 
@@ -137,5 +230,7 @@ export {
     getBlogById,
     deleteBlogById,
     togglePublish,
-    updateBlog
+    updateBlog,
+    addComment,
+    getBlogComments
 }
