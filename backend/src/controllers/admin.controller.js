@@ -19,7 +19,7 @@ const adminLogin = async (req, res) => {
     }
 
     // Set token expiration based on rememberMe
-    const expiresIn = rememberMe ? "10d" : "1d"; // 10 days if remember me 1 day if not
+    const expiresIn = rememberMe ? "10d" : "1d"; // 10 days if remember me, 1 day if not
 
     const token = jwt.sign(
       {
@@ -49,38 +49,21 @@ const adminLogin = async (req, res) => {
 
 const getAllComments = asyncHandler(async (req, res) => {
   try {
-    // Try with populate first if it fails get comments without populate
-    let comments;
-    try {
-      comments = await Comment.find()
-        .populate("blogId", "title")
-        .sort({ createdAt: -1 });
-    } catch (populateError) {
-      console.error(
-        "Populate error, fetching without populate:",
-        populateError
-      );
-      // If populate fails, get comments without blog title
-      comments = await Comment.find().sort({ createdAt: -1 });
+    // Only admins can see all comments
+    const { userType } = req.user;
 
-      // Manually add blog titles
-      for (let comment of comments) {
-        if (comment.blogId) {
-          try {
-            const blog = await Blog.findById(comment.blogId).select("title");
-            comment.blogId = blog || { title: "Unknown Blog" };
-          } catch (err) {
-            comment.blogId = { title: "Unknown Blog" };
-          }
-        }
-      }
+    if (userType !== "admin") {
+      throw new ApiError(403, "Access denied. Admin privileges required.");
     }
+
+    const comments = await Comment.find().sort({ createdAt: -1 });
 
     return res
       .status(200)
-      .json(new ApiResponse(200, comments, "Comments fetched successfully"));
+      .json(
+        new ApiResponse(200, comments, "All Comments Fetched Successfully")
+      );
   } catch (error) {
-    console.error("Get all comments error:", error);
     throw new ApiError(
       500,
       error?.message || "Something went wrong while fetching comments"
@@ -91,9 +74,10 @@ const getAllComments = asyncHandler(async (req, res) => {
 const approveCommentById = asyncHandler(async (req, res) => {
   try {
     const { commentId } = req.body;
+    const { userType } = req.user;
 
-    if (!commentId) {
-      throw new ApiError(400, "Comment ID is required");
+    if (userType !== "admin") {
+      throw new ApiError(403, "Access denied. Admin privileges required.");
     }
 
     const comment = await Comment.findByIdAndUpdate(
@@ -110,7 +94,6 @@ const approveCommentById = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, comment, "Comment approved successfully"));
   } catch (error) {
-    console.error("Approve comment error:", error);
     throw new ApiError(
       500,
       error?.message || "Something went wrong while approving comment"
@@ -121,9 +104,10 @@ const approveCommentById = asyncHandler(async (req, res) => {
 const deleteCommentById = asyncHandler(async (req, res) => {
   try {
     const { commentId } = req.body;
+    const { userType } = req.user;
 
-    if (!commentId) {
-      throw new ApiError(400, "Comment ID is required");
+    if (userType !== "admin") {
+      throw new ApiError(403, "Access denied. Admin privileges required.");
     }
 
     const comment = await Comment.findByIdAndDelete(commentId);
@@ -136,7 +120,6 @@ const deleteCommentById = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, {}, "Comment deleted successfully"));
   } catch (error) {
-    console.error("Delete comment error:", error);
     throw new ApiError(
       500,
       error?.message || "Something went wrong while deleting comment"
@@ -148,18 +131,26 @@ const getDashboardData = asyncHandler(async (req, res) => {
   try {
     const { userType, email } = req.user;
 
+    // Build filters based on user type
     let blogFilter = {};
+    let commentFilter = {};
+
     if (userType === "user") {
-      // Users can only see their own blogs
+      // Users can only see their own blog statistics
       blogFilter.authorEmail = email;
+      // For comments, we'll show comments on their blogs
+      const userBlogs = await Blog.find(blogFilter).select("_id");
+      const userBlogIds = userBlogs.map((blog) => blog._id);
+      commentFilter.blogId = { $in: userBlogIds };
     }
+    // Admins see all data (no filter)
 
     const totalPublishedBlogs = await Blog.countDocuments({
       isPublished: true,
       ...blogFilter,
     });
 
-    const totalComments = await Comment.countDocuments();
+    const totalComments = await Comment.countDocuments(commentFilter);
 
     const drafts = await Blog.countDocuments({
       isPublished: false,
@@ -169,7 +160,7 @@ const getDashboardData = asyncHandler(async (req, res) => {
     const recentBlogs = await Blog.find(blogFilter)
       .sort({ createdAt: -1 })
       .limit(5)
-      .select("title subTitle isPublished createdAt");
+      .select("title subTitle isPublished createdAt authorName authorType");
 
     const dashboardData = {
       blogs: totalPublishedBlogs,
@@ -205,18 +196,13 @@ const getAllBlogsAdmin = asyncHandler(async (req, res) => {
       // Users can only see their own blogs
       blogFilter.authorEmail = email;
     }
+    // Admins see all blogs (no filter)
 
     const blogs = await Blog.find(blogFilter).sort({ createdAt: -1 });
 
     return res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          blogs,
-          `All Blogs Fetched Successfully (${userType})`
-        )
-      );
+      .json(new ApiResponse(200, blogs, `All Blogs Fetched Successfully`));
   } catch (error) {
     throw new ApiError(
       500,
