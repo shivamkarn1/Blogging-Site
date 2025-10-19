@@ -30,14 +30,14 @@ import dashboard_icon_2 from "./dashboard_icon_2.svg";
 import dashboard_icon_3 from "./dashboard_icon_3.svg";
 import dashboard_icon_4 from "./dashboard_icon_4.svg";
 import logo from "./blogify-high-resolution-logo.png";
+
 export const assets = {
   logo,
   facebook_icon,
   googleplus_icon,
   twitter_icon,
   arrow,
-  logo_light,
-  logo, // Add this line
+  logo,
   blog_icon,
   add_icon,
   email_icon,
