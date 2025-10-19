@@ -88,7 +88,7 @@ const AddBlog = () => {
         prompt: title,
       });
 
-      console.log("Response:", data);
+      // console.log("Response:", data);
 
       if (data.success) {
         const content = data.data.content;
