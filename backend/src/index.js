@@ -7,37 +7,36 @@ import blogRouter from "./routes/blog.routes.js";
 import userRouter from "./routes/user.routes.js";
 
 const app = express();
+const port = process.env.PORT || 4000;
 
+// Connect Database
+connectDB();
+
+// Middlewares
+app.use(express.json());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     credentials: true,
   })
 );
-app.use(express.json({ limit: "16kb" }));
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
-app.get("/", (req, res) => res.send("Server is running Relax 😉..."));
-
-await connectDB()
-  .then(() => {
-    app.on("error", (error) => {
-      console.error("Error : ", error);
-      throw error;
-    });
-    app.listen(process.env.PORT || 8000, () => {
-      console.log(`Server is running on port http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("MongoDB Connection Failed: ", error);
-  });
-
-// Routes
+// API endpoints
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/blog", blogRouter);
 app.use("/api/v1/user", userRouter);
 
-const PORT = process.env.PORT || 8000;
+app.get("/", (req, res) => {
+  res.json({ message: "API Working" });
+});
 
-export default app;
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Error stack:", err.stack);
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
+app.listen(port, () => console.log(`Server started on PORT:${port}`));

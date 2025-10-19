@@ -18,7 +18,7 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: true,
-      minlength: [6, "Password must be at least 6 characters long"],
+      minlength: 6,
     },
     isActive: {
       type: Boolean,
@@ -31,13 +31,21 @@ const userSchema = new Schema(
 // Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  next();
+  try {
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error("Password comparison failed");
+  }
 };
 
 export const User = mongoose.model("User", userSchema);
