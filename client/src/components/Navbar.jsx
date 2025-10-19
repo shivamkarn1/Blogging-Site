@@ -2,7 +2,6 @@ import React from "react";
 import { assets } from "../assets/assets.js";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext.jsx";
-
 const Navbar = () => {
   const { navigate, token, user } = useAppContext();
 
@@ -25,7 +24,7 @@ const Navbar = () => {
     <div className="flex justify-between items-center py-5 mx-8 sm:mx-20 xl:mx-32">
       <img
         onClick={() => navigate("/")}
-        src="/blogify-high-resolution-logo.png"
+        src="./blogify-high-resolution-logo.png"
         alt="logo"
         className="cursor-pointer h-40 sm:h-28 md:h-16 w-auto object-contain rounded-4xl border border-amber-800"
       />
