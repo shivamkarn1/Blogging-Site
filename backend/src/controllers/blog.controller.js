@@ -318,11 +318,15 @@ const getBlogComments = asyncHandler(async (req, res) => {
 
 const generateContent = asyncHandler(async (req, res) => {
   try {
-    a;
     const { prompt } = req.body;
 
     if (!prompt) {
       throw new ApiError(400, "Prompt is required");
+    }
+
+    // Check if GEMINI_API_KEY is configured
+    if (!process.env.GEMINI_API_KEY) {
+      throw new ApiError(500, "AI service not configured");
     }
 
     // Use the main function from gemini config
@@ -331,7 +335,11 @@ const generateContent = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(
-        new ApiResponse(200, generatedText, "Content generated successfully")
+        new ApiResponse(
+          200,
+          { content: generatedText },
+          "Content generated successfully"
+        )
       );
   } catch (error) {
     console.error("Content generation error:", error);
