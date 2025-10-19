@@ -91,9 +91,20 @@ const AddBlog = () => {
       console.log("Response:", data);
 
       if (data.success) {
-        await typeContent(parse(data.data));
+        const content = data.data.content;
+        console.log("Content to parse:", content);
+        console.log("Content type:", typeof content);
+
+        // Make sure content is a string before parsing
+        if (typeof content === "string") {
+          const parsedContent = parse(content);
+          await typeContent(parsedContent);
+        } else {
+          console.error("Content is not a string:", content);
+          toast.error("Invalid content format received");
+        }
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to generate content");
       }
     } catch (error) {
       console.error("Generate content error:", error);
