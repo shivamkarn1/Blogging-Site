@@ -14,7 +14,8 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const { axios, token } = useAppContext();
+  const { axios, token, user } = useAppContext();
+  const isAdmin = user?.userType === "admin";
 
   const fetchDashboardData = async () => {
     if (!token) {
@@ -87,10 +88,12 @@ const Dashboard = () => {
         {/* Header Section */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-amber-900 mb-2 tracking-tight">
-            Dashboard
+            {isAdmin ? "Admin Dashboard" : "My Dashboard"}
           </h1>
           <p className="text-sm sm:text-base text-amber-600">
-            Overview of your blog statistics
+            {isAdmin
+              ? "Overview of your blog statistics"
+              : "Overview of your blogging activity"}
           </p>
         </div>
 
@@ -98,7 +101,7 @@ const Dashboard = () => {
         <div className="bg-gradient-to-br from-white via-amber-50 to-yellow-50 rounded-3xl shadow-xl border border-amber-200/50 p-5 sm:p-6 lg:p-8 mb-6 sm:mb-8 backdrop-blur-sm">
           <h2 className="text-lg sm:text-xl font-bold text-amber-900 mb-5 sm:mb-6 flex items-center gap-2">
             <span className="w-1 h-6 bg-gradient-to-b from-amber-500 to-yellow-500 rounded-full"></span>
-            Content Overview
+            {isAdmin ? "Content Overview" : "My Content"}
           </h2>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -130,7 +133,7 @@ const Dashboard = () => {
             <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 shadow-lg transform transition-all hover:scale-105 hover:shadow-xl">
               <div className="flex flex-col h-full justify-between">
                 <p className="text-xs sm:text-sm font-medium text-blue-100 mb-2 sm:mb-3">
-                  Drafts
+                  {isAdmin ? "Drafts" : "Pending Review"}
                 </p>
                 <p className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
                   {dashboardData.drafts || 0}
@@ -138,7 +141,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Comments Card */}
+            {/* Comments Card - Show for admin or total for user */}
             <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 shadow-lg transform transition-all hover:scale-105 hover:shadow-xl">
               <div className="flex flex-col h-full justify-between">
                 <p className="text-xs sm:text-sm font-medium text-purple-100 mb-2 sm:mb-3">
@@ -164,7 +167,7 @@ const Dashboard = () => {
                 />
               </div>
               <h2 className="text-lg sm:text-xl font-bold text-amber-900">
-                Latest Blogs
+                {isAdmin ? "Latest Blogs" : "My Latest Blogs"}
               </h2>
             </div>
           </div>
@@ -236,10 +239,14 @@ const Dashboard = () => {
                           </svg>
                         </div>
                         <p className="text-amber-600 font-medium text-sm sm:text-base">
-                          No recent blogs found
+                          {isAdmin
+                            ? "No recent blogs found"
+                            : "No blogs created yet"}
                         </p>
                         <p className="text-amber-500 text-xs sm:text-sm mt-1">
-                          Create your first blog post to get started
+                          {isAdmin
+                            ? "Create your first blog post to get started"
+                            : "Start writing your first blog post"}
                         </p>
                       </div>
                     </td>

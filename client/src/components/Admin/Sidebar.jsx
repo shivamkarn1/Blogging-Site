@@ -14,13 +14,13 @@ const Sidebar = () => {
       {!isOpen && (
         <button
           onClick={toggleSidebar}
-          className="md:hidden fixed top-4 right-4 z-50 p-2.5 bg-gradient-to-br from-primary to-primary/80 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+          className="md:hidden fixed top-6 left-4 z-50 p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
           aria-label="Toggle menu"
         >
-          <div className="w-6 h-6 flex flex-col justify-center items-center gap-1">
-            <span className="block w-5 h-0.5 bg-white rounded-full"></span>
-            <span className="block w-5 h-0.5 bg-white rounded-full"></span>
-            <span className="block w-5 h-0.5 bg-white rounded-full"></span>
+          <div className="w-6 h-6 flex flex-col justify-center items-center gap-1.5">
+            <span className="block w-6 h-0.5 bg-white rounded-full"></span>
+            <span className="block w-6 h-0.5 bg-white rounded-full"></span>
+            <span className="block w-6 h-0.5 bg-white rounded-full"></span>
           </div>
         </button>
       )}

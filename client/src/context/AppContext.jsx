@@ -1,75 +1,89 @@
-import { createContext, useContext, useEffect, useState } from "react"
-import axios from 'axios';
-import {useNavigate} from 'react-router-dom'
-import { toast } from "sonner";
+import { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AppContext = createContext();
 
-export const AppProvider = ({children})=>{
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error("useAppContext must be used within an AppProvider");
+  }
+  return context;
+};
 
-    const navigate = useNavigate()
+export const AppProvider = ({ children }) => {
+  const navigate = useNavigate();
+  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
-    const [token,setToken] = useState(null)
-    const [blogs,setBlogs] = useState([])
-    const [input,setInput] = useState("")
+  // Configure axios baseURL
+  axios.defaults.baseURL =
+    import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-    // Set base URL explicitly
-    const baseURL = import.meta.env.VITE_BASE_URL || 'http://localhost:8000';
-    
-    const fetchBlogs = async()=>{
-        try {
-            
-            // Make request with full URL for debugging
-            const response = await fetch(`${baseURL}/api/v1/blog/all`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const responseData = await response.json();
-            
-            if(responseData.success && responseData.data) {
-                const blogsArray = Array.isArray(responseData.data) ? responseData.data : [];
-                setBlogs(blogsArray);
-                toast.success(`Loaded ${blogsArray.length} blogs`);
-            } else {
-                toast.error(responseData.message || 'No blogs found');
-                setBlogs([]);
-            }
-        } catch (error) {
-            toast.error('Failed to fetch blogs: ' + error.message);
-            setBlogs([]);
-        }
+  // Set up axios interceptor for token
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
     }
-    
-    useEffect(()=>{
-        fetchBlogs();
-        
-        const token = localStorage.getItem('token')
-        if(token){
-            setToken(token)
+  }, [token]);
+
+  // Check token validity on app load
+  useEffect(() => {
+    const checkTokenValidity = () => {
+      const storedToken = localStorage.getItem("token");
+      const tokenExpiry = localStorage.getItem("tokenExpiry");
+      const userData = localStorage.getItem("user");
+
+      if (storedToken && tokenExpiry && userData) {
+        const now = new Date().getTime();
+        const expiryTime = parseInt(tokenExpiry);
+
+        if (now < expiryTime) {
+          setToken(storedToken);
+          setUser(JSON.parse(userData));
+          axios.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${storedToken}`;
+        } else {
+          // Token expired, clear everything
+          localStorage.removeItem("token");
+          localStorage.removeItem("tokenExpiry");
+          localStorage.removeItem("user");
+          setToken(null);
+          setUser(null);
+          delete axios.defaults.headers.common["Authorization"];
         }
-    },[])
+      }
+    };
 
-    // Configure axios after component mounts
-    useEffect(() => {
-        axios.defaults.baseURL = baseURL;
-        if(token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        }
-    }, [token, baseURL]);
+    checkTokenValidity();
+  }, []);
 
-    const value = {
-        axios,navigate,token,setToken,blogs,setBlogs,input,setInput,fetchBlogs
-    }
-    
-    return (
-        <AppContext.Provider value={value}>
-            {children}
-        </AppContext.Provider>
-    )
-}
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("tokenExpiry");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+    delete axios.defaults.headers.common["Authorization"];
+    navigate("/");
+  };
 
-export const useAppContext = ()=>{
-    return useContext(AppContext)
-}
+  const value = {
+    token,
+    setToken,
+    user,
+    setUser,
+    navigate,
+    axios,
+    logout,
+  };
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+};
