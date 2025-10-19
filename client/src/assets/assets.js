@@ -12,8 +12,6 @@ import facebook_icon from "./facebook_icon.svg";
 import googleplus_icon from "./googleplus_icon.svg";
 import twitter_icon from "./twitter_icon.svg";
 import arrow from "./arrow.svg";
-import logo_light from "./logo_light.svg";
-import logo from "./blogify-high-resolution-logo.png"; // Add this line
 import blog_icon from "./blog_icon.png";
 import add_icon from "./add_icon.svg";
 import list_icon from "./list_icon.svg";
