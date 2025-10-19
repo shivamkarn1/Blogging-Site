@@ -7,12 +7,26 @@ import { ApiError } from "../utils/ApiError.js"
 
 const adminLogin = async(req , res)=>{
     try {
-        const {email,password} = req.body;
+        const {email, password, rememberMe} = req.body;
         if(email != process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASSWORD){
             return res.status(401).json({success:false,message: "Invalid email or password for ADMIN LOGIN"});
         }
-        const token = jwt.sign({email},process.env.JWT_SECRET)
-        res.status(200).json({success:true,message: "Admin logged in successfully",token});
+        
+        // Set token expiration based on rememberMe
+        const expiresIn = rememberMe ? '10d' : '1d'; // 10 days if remember me, 1 day if not
+        
+        const token = jwt.sign(
+            {email}, 
+            process.env.JWT_SECRET, 
+            {expiresIn}
+        );
+        
+        res.status(200).json({
+            success: true,
+            message: "Admin logged in successfully",
+            token,
+            expiresIn: rememberMe ? 10 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000 // in milliseconds
+        });
     } catch (error) {
         res.status(500).json({message: "Internal server error"});   
     }
