@@ -24,7 +24,7 @@ const Navbar = () => {
     <div className="flex justify-between items-center py-5 mx-8 sm:mx-20 xl:mx-32">
       <img
         onClick={() => navigate("/")}
-        src="./blogify-high-resolution-logo.png"
+        src={assets.logo}
         alt="logo"
         className="cursor-pointer h-40 sm:h-28 md:h-16 w-auto object-contain rounded-4xl border border-amber-800"
       />
