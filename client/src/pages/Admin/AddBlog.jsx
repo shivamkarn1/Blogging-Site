@@ -19,21 +19,21 @@ const AddBlog = () => {
   const [isPublished, setIsPublished] = useState(false);
   const [loading, setLoading] = useState(false);
   const [typingProgress, setTypingProgress] = useState(0);
-  const [currentText, setCurrentText] = useState("Initializing AI");
+  const [currentText, setCurrentText] = useState("Initializing AI engine");
 
   // Enhanced text progression for more interactive feel
   const progressTexts = [
-    "Initializing AI",
-    "Analyzing topic",
-    "Researching content",
-    "Structuring article",
-    "Generating content",
-    "Adding creative flair",
-    "Polishing writing",
-    "Finalizing masterpiece",
+    "Initializing AI engine",
+    "Analyzing your topic",
+    "Researching relevant content",
+    "Structuring the article",
+    "Generating engaging content",
+    "Adding creative elements",
+    "Polishing the writing",
+    "Finalizing your masterpiece",
   ];
 
-  const typeContent = (content, speed = 2) => {
+  const typeContent = (content, speed = 5) => {
     return new Promise((resolve) => {
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = content;
@@ -44,7 +44,7 @@ const AddBlog = () => {
       let textIndex = 0;
 
       const interval = setInterval(() => {
-        currentIndex += Math.floor(Math.random() * 8) + 5; // Much faster increment
+        currentIndex += Math.floor(Math.random() * 4) + 2; // Faster increment
 
         const progress = Math.floor((currentIndex / totalLength) * 100);
 
@@ -62,12 +62,12 @@ const AddBlog = () => {
         if (currentIndex >= totalLength) {
           currentIndex = totalLength;
           setTypingProgress(100);
-          setCurrentText("Content generated!");
+          setCurrentText("Content generated successfully!");
           clearInterval(interval);
           setTimeout(() => {
             quillRef.current.root.innerHTML = content;
             resolve();
-          }, 200);
+          }, 300);
         } else {
           setTypingProgress(progress);
         }
@@ -87,6 +87,8 @@ const AddBlog = () => {
       const { data } = await axios.post("/api/v1/blog/generate", {
         prompt: title,
       });
+
+      // console.log("Response:", data);
 
       if (data.success) {
         const content = data.data.content;
@@ -114,10 +116,11 @@ const AddBlog = () => {
     } finally {
       setLoading(false);
       setTypingProgress(0);
-      setCurrentText("Initializing AI");
+      setCurrentText("Initializing AI engine");
     }
   };
 
+  // ...existing onSubmitHandler and useEffect code...
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
@@ -188,45 +191,6 @@ const AddBlog = () => {
 
   return (
     <div className="flex-1 bg-gradient-to-br from-slate-50 via-orange-50/30 to-amber-50/40 h-full overflow-y-auto">
-      <style>{`
-        @keyframes shimmerFast {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes particleFloat {
-          0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
-          50% { transform: translateY(-20px) scale(1.1); opacity: 1; }
-        }
-        @keyframes dataFlow {
-          0% { transform: translateY(-100%) scale(0.8); opacity: 0; }
-          50% { opacity: 1; }
-          100% { transform: translateY(100%) scale(1.2); opacity: 0; }
-        }
-        @keyframes pulseRing {
-          0% { transform: scale(0.8); opacity: 1; }
-          100% { transform: scale(1.5); opacity: 0; }
-        }
-        @keyframes rotateGradient {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .shimmer-fast {
-          animation: shimmerFast 0.8s ease-in-out infinite;
-        }
-        .particle-float {
-          animation: particleFloat 2s ease-in-out infinite;
-        }
-        .data-flow {
-          animation: dataFlow 1.5s ease-in-out infinite;
-        }
-        .pulse-ring {
-          animation: pulseRing 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .rotate-gradient {
-          animation: rotateGradient 3s linear infinite;
-        }
-      `}</style>
-
       <div className="w-full max-w-6xl px-6 py-16 mx-auto">
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-3">
@@ -245,6 +209,7 @@ const AddBlog = () => {
           className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden backdrop-blur-sm"
         >
           <div className="p-10 space-y-8">
+            {/* ...existing featuredImage, title, subTitle sections... */}
             <div>
               <label className="block text-sm font-semibold text-slate-800 mb-3">
                 Featured Image *
@@ -369,50 +334,15 @@ const AddBlog = () => {
                 ></div>
 
                 {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-50/98 via-amber-50/98 to-orange-100/98 backdrop-blur-sm rounded-lg overflow-hidden">
-                    {/* Animated background particles */}
-                    <div className="absolute inset-0 overflow-hidden">
-                      <div className="absolute top-10 left-10 w-32 h-32 bg-orange-300/20 rounded-full blur-2xl particle-float"></div>
-                      <div
-                        className="absolute bottom-10 right-10 w-40 h-40 bg-amber-300/20 rounded-full blur-2xl particle-float"
-                        style={{ animationDelay: "0.5s" }}
-                      ></div>
-                      <div
-                        className="absolute top-1/2 left-1/2 w-36 h-36 bg-orange-400/20 rounded-full blur-2xl particle-float"
-                        style={{ animationDelay: "1s" }}
-                      ></div>
-                    </div>
-
-                    <div className="relative text-center max-w-md px-6 z-10">
-                      {/* Enhanced AI Brain Icon with Multiple Layers */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-50/98 via-orange-50/98 to-amber-50/98 backdrop-blur-md rounded-lg border border-orange-200/50 shadow-lg">
+                    <div className="text-center max-w-sm px-6">
                       <div className="relative inline-block mb-6">
-                        {/* Pulse rings */}
-                        <div className="absolute inset-0 pulse-ring">
-                          <div className="w-full h-full rounded-full border-4 border-orange-400"></div>
-                        </div>
-                        <div
-                          className="absolute inset-0 pulse-ring"
-                          style={{ animationDelay: "0.5s" }}
-                        >
-                          <div className="w-full h-full rounded-full border-4 border-amber-400"></div>
-                        </div>
-                        <div
-                          className="absolute inset-0 pulse-ring"
-                          style={{ animationDelay: "1s" }}
-                        >
-                          <div className="w-full h-full rounded-full border-4 border-orange-500"></div>
-                        </div>
-
-                        {/* Rotating gradient ring */}
-                        <div className="absolute inset-0 rotate-gradient">
-                          <div className="w-full h-full rounded-full border-4 border-transparent border-t-orange-500 border-r-amber-500"></div>
-                        </div>
-
-                        {/* Main icon container */}
-                        <div className="relative bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 p-6 rounded-full shadow-2xl">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 rounded-2xl blur-xl opacity-40 animate-pulse"></div>
+                        {/* removing the bulb for now */}
+                        {/* <div className="relative bg-gradient-to-br from-orange-500 to-amber-500 p-4 rounded-2xl shadow-lg animate-bounce">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="w-12 h-12 text-white"
+                            className="w-8 h-8 text-white animate-spin"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -421,66 +351,49 @@ const AddBlog = () => {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M13 10V3L4 14h7v7l9-11h-7z"
+                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
                             />
                           </svg>
-
-                          {/* Data flow particles */}
-                          <div className="absolute top-0 left-1/2 w-1 h-1 bg-white rounded-full data-flow"></div>
-                          <div
-                            className="absolute top-0 left-1/2 w-1 h-1 bg-white rounded-full data-flow"
-                            style={{ animationDelay: "0.3s" }}
-                          ></div>
-                          <div
-                            className="absolute top-0 left-1/2 w-1 h-1 bg-white rounded-full data-flow"
-                            style={{ animationDelay: "0.6s" }}
-                          ></div>
-                          <div
-                            className="absolute top-0 left-1/2 w-1 h-1 bg-white rounded-full data-flow"
-                            style={{ animationDelay: "0.9s" }}
-                          ></div>
-                        </div>
+                        </div> */}
                       </div>
 
-                      {/* Status text */}
-                      <div className="mb-5">
-                        <h3 className="text-xl font-bold text-slate-800 mb-2 flex items-center justify-center gap-2">
-                          <span className="inline-block w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
-                          AI Working
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                          AI Content Generation
                         </h3>
-                        <p className="text-base text-slate-700 font-medium min-h-[24px] transition-all duration-200">
+                        <p className="text-sm text-slate-600 min-h-[20px] transition-all duration-300">
                           {currentText}
+                          <span className="inline-flex ml-1">
+                            <span className="animate-[bounce_0.8s_ease-in-out_infinite_0ms]">
+                              .
+                            </span>
+                            <span className="animate-[bounce_0.8s_ease-in-out_infinite_150ms]">
+                              .
+                            </span>
+                            <span className="animate-[bounce_0.8s_ease-in-out_infinite_300ms]">
+                              .
+                            </span>
+                          </span>
                         </p>
                       </div>
 
-                      {/* Enhanced progress bar */}
-                      <div className="w-full bg-orange-100 rounded-full h-4 mb-3 overflow-hidden shadow-inner border-2 border-orange-200/50">
+                      <div className="w-full bg-slate-200 rounded-full h-3 mb-2 overflow-hidden shadow-inner">
                         <div
-                          className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 rounded-full transition-all duration-100 ease-out relative overflow-hidden"
+                          className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 rounded-full transition-all duration-200 ease-out relative overflow-hidden"
                           style={{ width: `${typingProgress}%` }}
                         >
-                          <div className="absolute inset-0 shimmer-fast">
-                            <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
-                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.5s_ease-in-out_infinite]"></div>
                         </div>
                       </div>
 
-                      <p className="text-base font-bold text-orange-600 mb-4">
-                        {typingProgress}%
+                      <p className="text-sm font-semibold text-slate-600">
+                        {typingProgress}% complete
                       </p>
 
-                      {/* Activity indicators */}
-                      <div className="flex items-center justify-center gap-2">
-                        {[0, 1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className="w-3 h-3 bg-orange-500 rounded-full"
-                            style={{
-                              animation: `pulse 0.8s ease-in-out infinite`,
-                              animationDelay: `${i * 0.1}s`,
-                            }}
-                          ></div>
-                        ))}
+                      <div className="mt-4 flex items-center justify-center gap-1.5">
+                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[pulse_1s_ease-in-out_infinite]"></div>
+                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[pulse_1s_ease-in-out_infinite_0.15s]"></div>
+                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[pulse_1s_ease-in-out_infinite_0.3s]"></div>
                       </div>
                     </div>
                   </div>
@@ -542,6 +455,7 @@ const AddBlog = () => {
               </div>
             </div>
 
+            {/* ...existing category and publish sections... */}
             <div>
               <label className="block text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
                 <span>Category</span>

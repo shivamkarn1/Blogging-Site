@@ -35,6 +35,32 @@ const SecureVaultAd = ({
     setShowFullPopup(false);
   };
 
+  // Add the CSS as a style element in the head
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes marquee {
+        0% {
+          transform: translateX(0%);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+      .animate-marquee {
+        animation: marquee 15s linear infinite;
+      }
+      .animate-marquee:hover {
+        animation-play-state: paused;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   if (!isVisible && !isPopup) return null;
 
   // Sidebar Marquee Version
@@ -84,24 +110,6 @@ const SecureVaultAd = ({
         {/* Shimmer Effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
       </div>
-
-      {/* Custom CSS for Marquee Animation */}
-      <style jsx>{`
-        @keyframes marquee {
-          0% {
-            transform: translateX(0%);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        .animate-marquee {
-          animation: marquee 15s linear infinite;
-        }
-        .animate-marquee:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
 
       {/* Full Popup when clicked */}
       {showFullPopup && <FullPopupAd onClose={handlePopupClose} />}

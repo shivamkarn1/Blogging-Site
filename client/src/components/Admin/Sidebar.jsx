@@ -1,10 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { assets } from "../../assets/assets";
 import SecureVaultAd from "./SecureVaultAd";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const [showAd, setShowAd] = useState(true);
+
+  // Add the CSS as a style element in the head
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes shimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+      .animate-shimmer {
+        animation: shimmer 1.5s ease-in-out;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   return (
     <>
@@ -45,7 +68,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           }`}
           style={{
             backgroundSize: "200% 100%",
-            animation: isOpen ? "shimmer 1.5s ease-in-out" : "none",
           }}
         ></div>
 
@@ -296,17 +318,6 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes shimmer {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-      `}</style>
     </>
   );
 };

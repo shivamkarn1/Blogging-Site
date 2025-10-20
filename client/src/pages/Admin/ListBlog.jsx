@@ -23,7 +23,7 @@ const ListBlog = () => {
       setLoading(true);
 
       // Use the correct endpoint for fetching admin blogs
-      const { data } = await axios.get("/api/v1/admin/blogs", {
+      const { data } = await axios.get("/api/v1/blog/admin/all", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -47,7 +47,7 @@ const ListBlog = () => {
         toast.error(
           error.response?.data?.message ||
             error.message ||
-            "Failed to fetch blogs",
+            "Failed to fetch blogs"
         );
       }
     } finally {
