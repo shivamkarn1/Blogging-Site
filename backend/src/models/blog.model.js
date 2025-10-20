@@ -4,14 +4,14 @@ const blogSchema = new Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, "Title is required"],
     },
     subTitle: {
       type: String,
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "Content is required"],
     },
     category: {
       type: String,
@@ -22,20 +22,7 @@ const blogSchema = new Schema(
     },
     isPublished: {
       type: Boolean,
-      required: true,
-    },
-    authorType: {
-      type: String,
-      enum: ["admin", "user"],
-      default: "user",
-    },
-    authorEmail: {
-      type: String,
-      required: true,
-    },
-    authorName: {
-      type: String,
-      required: true,
+      default: false,
     },
   },
   { timestamps: true }

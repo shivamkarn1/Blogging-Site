@@ -129,38 +129,20 @@ const deleteCommentById = asyncHandler(async (req, res) => {
 
 const getDashboardData = asyncHandler(async (req, res) => {
   try {
-    const { userType, email } = req.user;
-
-    // Build filters based on user type
-    let blogFilter = {};
-    let commentFilter = {};
-
-    if (userType === "user") {
-      // Users can only see their own blog statistics
-      blogFilter.authorEmail = email;
-      // For comments, we'll show comments on their blogs
-      const userBlogs = await Blog.find(blogFilter).select("_id");
-      const userBlogIds = userBlogs.map((blog) => blog._id);
-      commentFilter.blogId = { $in: userBlogIds };
-    }
-    // Admins see all data (no filter)
-
     const totalPublishedBlogs = await Blog.countDocuments({
       isPublished: true,
-      ...blogFilter,
     });
 
-    const totalComments = await Comment.countDocuments(commentFilter);
+    const totalComments = await Comment.countDocuments();
 
     const drafts = await Blog.countDocuments({
       isPublished: false,
-      ...blogFilter,
     });
 
-    const recentBlogs = await Blog.find(blogFilter)
+    const recentBlogs = await Blog.find()
       .sort({ createdAt: -1 })
       .limit(5)
-      .select("title subTitle isPublished createdAt authorName authorType");
+      .select("title subTitle isPublished createdAt");
 
     const dashboardData = {
       blogs: totalPublishedBlogs,
@@ -189,16 +171,7 @@ const getDashboardData = asyncHandler(async (req, res) => {
 
 const getAllBlogsAdmin = asyncHandler(async (req, res) => {
   try {
-    const { userType, email } = req.user;
-
-    let blogFilter = {};
-    if (userType === "user") {
-      // Users can only see their own blogs
-      blogFilter.authorEmail = email;
-    }
-    // Admins see all blogs (no filter)
-
-    const blogs = await Blog.find(blogFilter).sort({ createdAt: -1 });
+    const blogs = await Blog.find().sort({ createdAt: -1 });
 
     return res
       .status(200)

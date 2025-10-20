@@ -28,16 +28,7 @@ const getAllBlog = asyncHandler(async (req, res) => {
 
 const getAllBlogsAdmin = asyncHandler(async (req, res) => {
   try {
-    const { userType, email } = req.user;
-
-    let blogFilter = {};
-    if (userType === "user") {
-      // Users can only see their own blogs
-      blogFilter.authorEmail = email;
-    }
-    // Admins see all blogs (no filter)
-
-    const blogs = await Blog.find(blogFilter).sort({ createdAt: -1 });
+    const blogs = await Blog.find().sort({ createdAt: -1 });
 
     return res
       .status(200)
@@ -53,7 +44,6 @@ const getAllBlogsAdmin = asyncHandler(async (req, res) => {
 const addBlog = asyncHandler(async (req, res) => {
   try {
     const { title, subTitle, description, category, isPublished } = req.body;
-    const { email, name, userType } = req.user;
 
     if (!title || !description || !category) {
       throw new ApiError(400, "Title, description, and category are required");
@@ -67,29 +57,18 @@ const addBlog = asyncHandler(async (req, res) => {
       }
     }
 
-    // Determine if the blog should be published
-    // Admins can publish immediately if they choose to
-    // Users' blogs are always set to unpublished (pending review)
-    const shouldPublish = userType === "admin" ? isPublished === "true" : false;
-
     const blog = await Blog.create({
       title,
       subTitle,
       description,
       category,
       featuredImage: featuredImageUrl,
-      isPublished: shouldPublish,
-      authorType: userType,
-      authorEmail: email,
-      authorName: name,
+      isPublished: isPublished === "true",
     });
 
-    const message =
-      userType === "admin"
-        ? "Blog added successfully!"
-        : "Blog submitted for review! It will be published after admin approval.";
-
-    return res.status(201).json(new ApiResponse(201, blog, message));
+    return res
+      .status(201)
+      .json(new ApiResponse(201, blog, "Blog added successfully!"));
   } catch (error) {
     throw new ApiError(
       500,
@@ -122,22 +101,11 @@ const updateBlog = asyncHandler(async (req, res) => {
   try {
     const { blogId } = req.params;
     const { title, subTitle, description, category, isPublished } = req.body;
-    const { userType, email } = req.user;
 
-    // Build filter based on user type
-    let findFilter = { _id: blogId };
-    if (userType === "user") {
-      // Users can only update their own blogs
-      findFilter.authorEmail = email;
-    }
-
-    const blog = await Blog.findOne(findFilter);
+    const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      throw new ApiError(
-        404,
-        "Blog not found or you don't have permission to update it"
-      );
+      throw new ApiError(404, "Blog not found");
     }
 
     // Handle image update
@@ -158,8 +126,7 @@ const updateBlog = asyncHandler(async (req, res) => {
       featuredImage: featuredImageUrl,
     };
 
-    // Only admins can change publish status
-    if (userType === "admin" && isPublished !== undefined) {
+    if (isPublished !== undefined) {
       updateData.isPublished = isPublished === "true";
     }
 
@@ -181,27 +148,18 @@ const updateBlog = asyncHandler(async (req, res) => {
 const deleteBlogById = asyncHandler(async (req, res) => {
   try {
     const { blogId } = req.body;
-    const { userType, email } = req.user;
 
     if (!blogId) {
       throw new ApiError(400, "Blog ID is required");
     }
 
-    // Build filter based on user type
-    let deleteFilter = { _id: blogId };
-    if (userType === "user") {
-      // Users can only delete their own blogs
-      deleteFilter.authorEmail = email;
-    }
-
-    const blog = await Blog.findOneAndDelete(deleteFilter);
+    const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      throw new ApiError(
-        404,
-        "Blog not found or you don't have permission to delete it"
-      );
+      throw new ApiError(404, "Blog not found");
     }
+
+    await Blog.findByIdAndDelete(blogId);
 
     return res
       .status(200)
@@ -217,26 +175,18 @@ const deleteBlogById = asyncHandler(async (req, res) => {
 const togglePublish = asyncHandler(async (req, res) => {
   try {
     const { blogId } = req.body;
-    const { userType, email } = req.user;
+    const { userType } = req.user;
+
+    console.log("Toggle publish request:", { blogId, userType });
 
     if (!blogId) {
       throw new ApiError(400, "Blog ID is required");
     }
 
-    // Build filter based on user type
-    let findFilter = { _id: blogId };
-    if (userType === "user") {
-      // Users can only toggle their own blogs (but this should be restricted)
-      findFilter.authorEmail = email;
-    }
-
-    const blog = await Blog.findOne(findFilter);
+    const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      throw new ApiError(
-        404,
-        "Blog not found or you don't have permission to modify it"
-      );
+      throw new ApiError(404, "Blog not found");
     }
 
     // Only admins should be able to toggle publish status
@@ -247,15 +197,28 @@ const togglePublish = asyncHandler(async (req, res) => {
       );
     }
 
-    blog.isPublished = !blog.isPublished;
-    await blog.save();
+    // Use findByIdAndUpdate with runValidators: false to bypass validation
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      blogId,
+      { isPublished: !blog.isPublished },
+      {
+        new: true,
+        runValidators: false, // This will skip validation
+        validateBeforeSave: false, // Additional validation bypass
+      }
+    );
 
-    const message = blog.isPublished
+    if (!updatedBlog) {
+      throw new ApiError(500, "Failed to update blog");
+    }
+
+    const message = updatedBlog.isPublished
       ? "Blog published successfully"
       : "Blog unpublished successfully";
 
-    return res.status(200).json(new ApiResponse(200, blog, message));
+    return res.status(200).json(new ApiResponse(200, updatedBlog, message));
   } catch (error) {
+    console.error("Toggle publish error:", error);
     throw new ApiError(
       500,
       error?.message || "Something went wrong while toggling publish status"
