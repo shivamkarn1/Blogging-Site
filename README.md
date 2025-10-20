@@ -38,12 +38,28 @@ Blogging-Site/
 
 ### Homepage
 
+<<<<<<< HEAD
 ![Homepage](./client/images/Homepage.png)
+=======
+<<<<<<< HEAD
+![Homepage](./images/Homepage.png)
+=======
+![Homepage](./client/images/Homepage.png)
+>>>>>>> 7fb6388 (Fixed the README. Completed the Site Documentation.)
+>>>>>>> f6a47ae (Fixed the README. Completed the Site Documentation.)
 _Modern and responsive homepage with featured blogs and newsletter subscription_
 
 ### Admin Dashboard
 
+<<<<<<< HEAD
 ![Admin Dashboard](./client/images/AdminDashboard.png)
+=======
+<<<<<<< HEAD
+![Admin Dashboard](./images/AdminDashboard.png)
+=======
+![Admin Dashboard](./client/images/AdminDashboard.png)
+>>>>>>> 7fb6388 (Fixed the README. Completed the Site Documentation.)
+>>>>>>> f6a47ae (Fixed the README. Completed the Site Documentation.)
 _Comprehensive admin dashboard with blog management, analytics, and user controls_
 
 ## 📦 Installation
