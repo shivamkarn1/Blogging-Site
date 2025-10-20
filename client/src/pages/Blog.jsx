@@ -35,16 +35,15 @@ const Blog = () => {
     try {
       const { data } = await axios.get(`/api/v1/blog/comments/${id}`);
       if (data.success) {
-        // Fix: Make sure we're accessing the correct data structure
         setComments(data.data || []);
       } else {
         toast.error(data.message);
-        setComments([]); // Ensure comments is always an array
+        setComments([]);
       }
     } catch (error) {
       console.error("Fetch comments error:", error);
       toast.error(error.response?.data?.message || error.message);
-      setComments([]); // Ensure comments is always an array on error
+      setComments([]);
     }
   };
 
@@ -300,7 +299,8 @@ const Blog = () => {
             </div>
           </form>
         </div>
-        {/* social media icons / share buttons */}
+      </div>
+      {/* social media icons / share buttons
         <div className="my-24 max-w-3xl mx-auto">
           <p className="font-semibold my-4">
             Share this article to Social Media
@@ -311,7 +311,7 @@ const Blog = () => {
             <img src={assets.googleplus_icon} alt="" />
           </div>
         </div>
-      </div>
+      </div> */}
       <Footer />
     </div>
   ) : (
