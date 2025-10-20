@@ -1,88 +1,150 @@
-import React from 'react'
-import { assets } from '../../assets/assets'
-import {useAppContext} from "../../context/AppContext"
-import { showSuccessToast, showErrorToast } from "../../utils/toast";
+import React, { useState } from "react";
+import { useAppContext } from "../../context/AppContext";
+import { toast } from "sonner";
 
-const BlogTableItem = ({blog,fetchBlogs,index}) => {
-  
-  const {title,createdAt} = blog;
-  const BlogDate = new Date(createdAt)
-  const {axios} = useAppContext()
+const BlogTableItem = ({ blog, fetchBlogs, index }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const { axios, token, user } = useAppContext();
+  const isAdmin = user?.userType === "admin";
 
-  const deleteBlog = async()=>{
-    const confirm = window.confirm("Are you sure you want to delete the blog?")
-    if(!confirm) return;
-    
+  const deleteBlog = async () => {
+    const confirm = window.confirm("Are you sure you want to delete the blog?");
+    if (!confirm) return;
+
     try {
-      // Use blogId (this should match your backend controller expectation)
-      const {data} = await axios.post('/api/v1/blog/delete', {blogId: blog._id})
-      if(data.success){
-        showSuccessToast(data.message)
-        await fetchBlogs()
-      }else{
-        showErrorToast(data.message)
+      setIsLoading(true);
+      const { data } = await axios.post(
+        "/api/v1/blog/delete",
+        { blogId: blog._id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        fetchBlogs();
+      } else {
+        toast.error(data.message || "Failed to delete blog");
       }
     } catch (error) {
-      console.error('Delete blog error:', error);
-      showErrorToast(error.response?.data?.message || error.message)
+      console.error("Delete blog error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete blog"
+      );
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  const togglePublish = async()=>{
+  const togglePublish = async () => {
     try {
-      // Use blogId (this should match your backend controller expectation)  
-      const {data} = await axios.post("/api/v1/blog/toggle-publish", {blogId: blog._id})
-      if(data.success){
-        showSuccessToast(data.message)
-        await fetchBlogs()
-      }else{
-        showErrorToast(data.message)
+      setIsLoading(true);
+
+      const { data } = await axios.post(
+        "/api/v1/blog/toggle-publish",
+        { blogId: blog._id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        fetchBlogs();
+      } else {
+        toast.error(data.message || "Failed to toggle publish status");
       }
     } catch (error) {
-      console.error('Toggle publish error:', error);
-      showErrorToast(error.response?.data?.message || error.message)
+      console.error("Toggle publish error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to toggle publish status"
+      );
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  return ( 
-    <>
-    <tr className="border-b border-amber-100 hover:bg-amber-50/50 transition-colors">
-      <th className="px-4 py-3 text-left text-amber-900 font-medium">{index}</th>
-      <td className="px-4 py-3 text-amber-800 font-medium max-w-xs truncate">{title}</td>
-      <td className="px-4 py-3 text-amber-600 text-sm max-sm:hidden">{BlogDate.toDateString()}</td>
-      <td className="px-4 py-3 max-sm:hidden">
-        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-          blog.isPublished 
-            ? 'bg-emerald-100 text-emerald-800' 
-            : 'bg-yellow-100 text-yellow-800'
-        }`}>
-          {blog.isPublished ? "Published" : "Unpublished"}
+  // Format date helper
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  return (
+    <tr className="hover:bg-amber-50/50 transition-colors">
+      <td className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-xs sm:text-sm text-amber-800 font-medium">
+        {index}
+      </td>
+      <td className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4">
+        <div className="max-w-xs">
+          <h3 className="text-xs sm:text-sm font-semibold text-amber-900 line-clamp-2">
+            {blog.title}
+          </h3>
+          {blog.subTitle && (
+            <p className="text-xs text-amber-600 mt-1 line-clamp-1">
+              {blog.subTitle}
+            </p>
+          )}
+        </div>
+      </td>
+      <td className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4 text-xs sm:text-sm text-amber-700 hidden md:table-cell">
+        {formatDate(blog.createdAt)}
+      </td>
+      <td className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4 hidden sm:table-cell">
+        <span
+          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            blog.isPublished
+              ? "bg-green-100 text-green-800"
+              : "bg-yellow-100 text-yellow-800"
+          }`}
+        >
+          {blog.isPublished ? "Published" : "Draft"}
         </span>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 sm:px-4 lg:px-6 py-3 lg:py-4">
         <div className="flex items-center gap-2">
-          <button 
-            onClick={togglePublish}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              blog.isPublished 
-                ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
-                : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+          {/* Toggle Publish Button - Only for Admins */}
+          {isAdmin && (
+            <button
+              onClick={togglePublish}
+              disabled={isLoading}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                blog.isPublished
+                  ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                  : "bg-green-100 text-green-700 hover:bg-green-200"
+              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              {isLoading ? "..." : blog.isPublished ? "Unpublish" : "Publish"}
+            </button>
+          )}
+
+          {/* Delete Button */}
+          <button
+            onClick={deleteBlog}
+            disabled={isLoading}
+            className={`px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            {blog.isPublished ? "Unpublish" : "Publish"}
-          </button>
-          <button 
-            onClick={deleteBlog}
-            className="p-1.5 rounded-lg hover:bg-red-100 transition-colors group"
-            title="Delete blog"
-          >
-            <img src={assets.cross_icon} alt="Delete" className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            {isLoading ? "..." : "Delete"}
           </button>
         </div>
       </td>
     </tr>
-    </>
-  )
-}
+  );
+};
 
-export default BlogTableItem
+export default BlogTableItem;
