@@ -1,10 +1,11 @@
 import { Blog } from "../models/blog.model.js";
+import { Comment } from "../models/comment.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Comment } from "../models/comment.model.js";
 import main from "../config/gemini.js";
+import mongoose from "mongoose"; // Add this import
 import fs from "fs";
 import path from "path";
 
@@ -299,18 +300,35 @@ const togglePublish = asyncHandler(async (req, res) => {
 
 const addComment = asyncHandler(async (req, res) => {
   try {
-    const { blogId, author, content } = req.body;
+    console.log("Add comment request body:", req.body);
 
-    if (!blogId || !author || !content) {
-      throw new ApiError(400, "Blog ID, author, and content are required");
+    const { blogId, name, content } = req.body;
+
+    // Validate required fields
+    if (!blogId || !name || !content) {
+      throw new ApiError(400, "Blog ID, name, and content are required");
     }
 
+    // Validate blogId format
+    if (!mongoose.Types.ObjectId.isValid(blogId)) {
+      throw new ApiError(400, "Invalid blog ID format");
+    }
+
+    // Check if blog exists
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      throw new ApiError(404, "Blog not found");
+    }
+
+    // Create comment
     const comment = await Comment.create({
       blogId,
-      author,
-      content,
+      name: name.trim(),
+      content: content.trim(),
       isApproved: false, // Comments need approval
     });
+
+    console.log("Comment created successfully:", comment._id);
 
     return res
       .status(201)
@@ -322,6 +340,20 @@ const addComment = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
+    console.error("Add comment error:", error);
+    console.error("Error stack:", error.stack);
+
+    // Handle specific mongoose validation errors
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((err) => err.message);
+      throw new ApiError(400, `Validation error: ${errors.join(", ")}`);
+    }
+
+    // Handle mongoose cast errors
+    if (error.name === "CastError") {
+      throw new ApiError(400, "Invalid data format provided");
+    }
+
     throw new ApiError(
       500,
       error?.message || "Something went wrong while adding comment"
