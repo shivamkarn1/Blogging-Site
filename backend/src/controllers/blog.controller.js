@@ -5,6 +5,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Comment } from "../models/comment.model.js";
 import main from "../config/gemini.js";
+import fs from "fs";
+import path from "path";
 
 const getAllBlog = asyncHandler(async (req, res) => {
   try {
@@ -45,15 +47,44 @@ const addBlog = asyncHandler(async (req, res) => {
   try {
     const { title, subTitle, description, category, isPublished } = req.body;
 
+    console.log("Add blog request body:", req.body);
+    console.log("Add blog file:", req.file);
+
     if (!title || !description || !category) {
+      // Clean up uploaded file if validation fails
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
       throw new ApiError(400, "Title, description, and category are required");
+    }
+
+    if (category === "All") {
+      // Clean up uploaded file if validation fails
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      throw new ApiError(400, "Please select a valid category");
     }
 
     let featuredImageUrl = "";
     if (req.file) {
+      console.log("File path:", req.file.path);
+      console.log("File exists:", fs.existsSync(req.file.path));
+
+      // Check if file exists before uploading
+      if (!fs.existsSync(req.file.path)) {
+        throw new ApiError(
+          400,
+          "Uploaded file not found at path: " + req.file.path
+        );
+      }
+
       const featuredImageResult = await uploadOnCloudinary(req.file.path);
       if (featuredImageResult) {
         featuredImageUrl = featuredImageResult.secure_url;
+        console.log("Image uploaded to cloudinary:", featuredImageUrl);
+      } else {
+        throw new ApiError(500, "Failed to upload image to cloudinary");
       }
     }
 
@@ -62,14 +93,28 @@ const addBlog = asyncHandler(async (req, res) => {
       subTitle,
       description,
       category,
-      featuredImage: featuredImageUrl,
-      isPublished: isPublished === "true",
+      featuredImage: featuredImageUrl || "",
+      isPublished: isPublished === "true" || isPublished === true,
     });
+
+    console.log("Blog created successfully:", blog._id);
 
     return res
       .status(201)
       .json(new ApiResponse(201, blog, "Blog added successfully!"));
   } catch (error) {
+    console.error("Add blog error:", error);
+
+    // Clean up uploaded file if there's an error
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+        console.log("Cleaned up uploaded file:", req.file.path);
+      } catch (cleanupError) {
+        console.error("Error cleaning up file:", cleanupError);
+      }
+    }
+
     throw new ApiError(
       500,
       error?.message || "Something went wrong while adding blog"
@@ -105,15 +150,30 @@ const updateBlog = asyncHandler(async (req, res) => {
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
+      // Clean up uploaded file if blog not found
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
       throw new ApiError(404, "Blog not found");
     }
 
     // Handle image update
     let featuredImageUrl = blog.featuredImage;
     if (req.file) {
+      console.log("Updating blog image, file path:", req.file.path);
+
+      if (!fs.existsSync(req.file.path)) {
+        throw new ApiError(
+          400,
+          "Uploaded file not found at path: " + req.file.path
+        );
+      }
+
       const featuredImageResult = await uploadOnCloudinary(req.file.path);
       if (featuredImageResult) {
         featuredImageUrl = featuredImageResult.secure_url;
+      } else {
+        throw new ApiError(500, "Failed to upload image to cloudinary");
       }
     }
 
@@ -127,7 +187,7 @@ const updateBlog = asyncHandler(async (req, res) => {
     };
 
     if (isPublished !== undefined) {
-      updateData.isPublished = isPublished === "true";
+      updateData.isPublished = isPublished === "true" || isPublished === true;
     }
 
     const updatedBlog = await Blog.findByIdAndUpdate(blogId, updateData, {
@@ -138,6 +198,17 @@ const updateBlog = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, updatedBlog, "Blog updated successfully"));
   } catch (error) {
+    console.error("Update blog error:", error);
+
+    // Clean up uploaded file if there's an error
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (cleanupError) {
+        console.error("Error cleaning up file:", cleanupError);
+      }
+    }
+
     throw new ApiError(
       500,
       error?.message || "Something went wrong while updating blog"

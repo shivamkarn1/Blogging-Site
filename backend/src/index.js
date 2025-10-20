@@ -7,7 +7,7 @@ import blogRouter from "./routes/blog.routes.js";
 import userRouter from "./routes/user.routes.js";
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 8000;
 
 // Connect Database
 connectDB();
