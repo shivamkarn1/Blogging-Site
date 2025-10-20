@@ -1,31 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { blog_data, blogCategories } from "../assets/assets";
+import { blogCategories } from "../assets/assets";
 import BlogCard from "./BlogCard";
 import { useAppContext } from "../context/AppContext";
 
 const BlogList = () => {
-  const [menu , setMenu] = useState("All")
-  const {blogs = [], input} = useAppContext(); // Add default empty array
+  const [menu, setMenu] = useState("All");
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { axios, input } = useAppContext();
 
-  const filteredBlogs = ()=>{
-    if(input === ''){
-      return blogs
+  // Fetch blogs from API
+  const fetchBlogs = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get("/api/v1/blog/all");
+
+      if (data.success) {
+        setBlogs(data.data || []);
+      } else {
+        console.error("Failed to fetch blogs:", data.message);
+        setBlogs([]);
+      }
+    } catch (error) {
+      console.error("Error fetching blogs:", error);
+      setBlogs([]);
+    } finally {
+      setLoading(false);
     }
-    return blogs.filter((blog)=>blog.title.toLowerCase().includes(input.toLowerCase())  || blog.category.toLowerCase().includes(input.toLowerCase()))
-  }
+  };
 
-  // Add loading state
-  // if (!blogs || blogs.length === 0) {
-  //   return (
-  //     <div className="flex justify-center items-center min-h-[400px]">
-  //       <div className="text-center">
-  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-  //         <p className="text-gray-600">Loading blogs...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
+
+  const filteredBlogs = () => {
+    let filtered = blogs;
+
+    // Filter by search input
+    if (input && input.trim() !== "") {
+      filtered = filtered.filter(
+        (blog) =>
+          blog.title.toLowerCase().includes(input.toLowerCase()) ||
+          blog.category.toLowerCase().includes(input.toLowerCase())
+      );
+    }
+
+    // Filter by category
+    if (menu !== "All") {
+      filtered = filtered.filter((blog) => blog.category === menu);
+    }
+
+    return filtered;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading blogs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -65,8 +103,8 @@ const BlogList = () => {
                     layoutId="activeTab"
                     className="absolute inset-0 -z-10 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 rounded-full"
                     initial={{ scale: 0, rotate: -90 }}
-                    animate={{ 
-                      scale: 1, 
+                    animate={{
+                      scale: 1,
                       rotate: 0,
                     }}
                     transition={{
@@ -78,8 +116,8 @@ const BlogList = () => {
                   <motion.div
                     className="absolute inset-0 -z-20 bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 rounded-full blur-lg"
                     initial={{ scale: 0, opacity: 0 }}
-                    animate={{ 
-                      scale: 1.3, 
+                    animate={{
+                      scale: 1.3,
                       opacity: 0.5,
                     }}
                     transition={{
@@ -90,7 +128,7 @@ const BlogList = () => {
                   <motion.div
                     className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-yellow-300 rounded-full"
                     initial={{ scale: 0 }}
-                    animate={{ 
+                    animate={{
                       scale: [0, 1.2, 1],
                       opacity: [0, 1, 0.8],
                     }}
@@ -102,7 +140,7 @@ const BlogList = () => {
                   <motion.div
                     className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-yellow-300 rounded-full"
                     initial={{ scale: 0 }}
-                    animate={{ 
+                    animate={{
                       scale: [0, 1.2, 1],
                       opacity: [0, 1, 0.8],
                     }}
@@ -135,9 +173,23 @@ const BlogList = () => {
           Showing: <span className="font-bold text-orange-600">{menu}</span>
         </motion.p>
       </motion.div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols4 gap-8 mb-24 mx-8 sm:mx-16 xl:mx-40">
-        {filteredBlogs().filter((blog)=>menu ==='All' ? true : blog.category===menu).map((blog)=><BlogCard key={blog._id} blog={blog}/>)}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 mb-24 mx-8 sm:mx-16 xl:mx-40">
+        {filteredBlogs().map((blog) => (
+          <BlogCard key={blog._id} blog={blog} />
+        ))}
       </div>
+
+      {filteredBlogs().length === 0 && !loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No blogs found</p>
+          <p className="text-gray-400 text-sm mt-2">
+            {input
+              ? "Try adjusting your search terms"
+              : "Check back later for new content"}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
