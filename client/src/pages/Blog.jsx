@@ -57,24 +57,42 @@ const Blog = () => {
     }
 
     try {
-      const { data } = await axios.post("/api/v1/blog/add-comment", {
+      console.log("Submitting comment:", {
         blogId: id,
-        author: name.trim(), // Changed from 'name' to 'author' to match your API
+        name: name.trim(),
         content: content.trim(),
       });
 
+      const { data } = await axios.post("/api/v1/blog/add-comment", {
+        blogId: id,
+        name: name.trim(),
+        content: content.trim(),
+      });
+
+      console.log("Add comment response:", data);
+
       if (data.success) {
-        toast.success("Comment added successfully!");
+        toast.success(data.message || "Comment added successfully!");
         // Clear the input fields
         setName("");
         setContent("");
         fetchComments();
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to add comment");
       }
     } catch (error) {
       console.error("Add comment error:", error);
-      toast.error(error.response?.data?.message || error.message);
+      console.error("Error response:", error.response?.data);
+
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.response?.status === 400) {
+        toast.error("Please check your input and try again");
+      } else if (error.response?.status === 404) {
+        toast.error("Blog not found");
+      } else {
+        toast.error("Failed to add comment. Please try again.");
+      }
     }
   };
 
@@ -171,7 +189,7 @@ const Blog = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-medium text-amber-900 text-sm">
-                          {item.author || item.name}
+                          {item.name}
                         </p>
                         <span className="text-xs text-amber-500">
                           {Moment(item.createdAt).fromNow()}
