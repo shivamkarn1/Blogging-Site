@@ -45,6 +45,7 @@ Blogging-Site/
 ![Homepage](./images/Homepage.png)
 =======
 ![Homepage](./client/images/Homepage.png)
+<<<<<<< HEAD
 >>>>>>> 7fb6388 (Fixed the README. Completed the Site Documentation.)
 >>>>>>> f6a47ae (Fixed the README. Completed the Site Documentation.)
 _Modern and responsive homepage with featured blogs and newsletter subscription_
@@ -60,7 +61,21 @@ _Modern and responsive homepage with featured blogs and newsletter subscription_
 ![Admin Dashboard](./client/images/AdminDashboard.png)
 >>>>>>> 7fb6388 (Fixed the README. Completed the Site Documentation.)
 >>>>>>> f6a47ae (Fixed the README. Completed the Site Documentation.)
+=======
+
+> > > > > > > 7fb6388 (Fixed the README. Completed the Site Documentation.)
+> > > > > > > _Modern and responsive homepage with featured blogs and newsletter subscription_
+
+### Admin Dashboard
+
+![Admin Dashboard](./client/images/AdminDashboard.png)
+>>>>>>> b8b4d1b (Updated README and added ai image Generation Image)
 _Comprehensive admin dashboard with blog management, analytics, and user controls_
+
+### 🤖 AI Content Generation
+
+![AI Content Generation](./client/images/AIgeneration.png)
+_Intelligent AI-powered content generation using Google Gemini for creating engaging blog content_
 
 ## 📦 Installation
 
@@ -145,6 +160,7 @@ The application will be available at:
 ### Frontend Features
 
 - **Modern UI/UX**: Clean, responsive design with Tailwind CSS
+- **🤖 AI-Powered Content**: Google Gemini AI integration for intelligent content generation
 - **Blog Browsing**: Browse and search through blog posts
 - **Blog Reading**: Rich text display with proper formatting
 - **Newsletter Subscription**: Email subscription functionality
@@ -161,17 +177,23 @@ The application will be available at:
 ### 👨‍💼 Admin Dashboard
 
 - **Dashboard Analytics**: Blog statistics and overview
+- **🤖 AI Content Generation**: Create blogs with Google Gemini AI assistance
 - **Blog Management**: Create, edit, delete, and publish blogs
 - **Rich Text Editor**: Quill.js editor with formatting options
 - **Media Upload**: Image upload with Cloudinary integration
 - **Comment Management**: Monitor and moderate user comments
 - **User Management**: View and manage user accounts
 - **Draft System**: Save blogs as drafts before publishing
+- **✨ Smart Content Tools**: AI-powered content suggestions and improvements
 
-### AI Integration
+### 🤖 AI Integration (Powered by Google Gemini)
 
-- **AI Content Generation**: Google Gemini AI integration for content suggestions
-- **Smart Descriptions**: AI-generated blog descriptions and metadata
+- **🧠 AI Content Generation**: Advanced Google Gemini AI integration for intelligent content creation
+- **✨ Smart Blog Writing**: Generate high-quality blog posts with AI assistance
+- **📝 Content Suggestions**: Get AI-powered suggestions for improving your content
+- **🎯 Smart Descriptions**: AI-generated blog descriptions and metadata
+- **⚡ Instant Content**: Quickly create engaging content with AI prompts
+- **🔄 Content Enhancement**: Improve existing content with AI recommendations
 
 ### 🔒 SecureVault Integration
 
