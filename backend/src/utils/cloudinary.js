@@ -19,7 +19,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     });
 
     // Delete file then
-    // fs.unlinkSync(localFilePath)
+    fs.unlinkSync(localFilePath);
     return response;
   } catch (error) {
     if (localFilePath && fs.existsSync(localFilePath)) {
