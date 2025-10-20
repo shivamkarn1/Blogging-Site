@@ -73,7 +73,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="p-4 sm:p-6 bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-14 w-14 sm:h-16 sm:w-16 border-4 border-amber-200 border-t-amber-500 mx-auto mb-4"></div>
           <p className="text-amber-600 font-medium">Loading dashboard...</p>
