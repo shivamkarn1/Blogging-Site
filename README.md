@@ -38,12 +38,12 @@ Blogging-Site/
 
 ### Homepage
 
-![Homepage](./images/Homepage.png)
+![Homepage](./client/images/Homepage.png)
 _Modern and responsive homepage with featured blogs and newsletter subscription_
 
 ### Admin Dashboard
 
-![Admin Dashboard](./images/AdminDashboard.png)
+![Admin Dashboard](./client/images/AdminDashboard.png)
 _Comprehensive admin dashboard with blog management, analytics, and user controls_
 
 ## 📦 Installation
