@@ -66,7 +66,7 @@ _Comprehensive admin dashboard with blog management, analytics, and user control
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v18 or Higher)
 - MongoDB (local or cloud instance)
 - Cloudinary account (for image uploads)
 - Google AI API key (for AI features)
