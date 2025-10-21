@@ -7,12 +7,11 @@ const Header = () => {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
-    setInput(inputRef.current.value);
+    // Input is already updated via onChange, no need to set it again
   };
 
   const onClear = () => {
     setInput("");
-    inputRef.current.value = "";
   };
 
   return (
@@ -48,8 +47,9 @@ const Header = () => {
                 id="search"
                 name="search"
                 type="search"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder="Search for blogs and topics"
-                required
                 className="flex-1 px-4 py-3 text-sm sm:text-base placeholder-amber-300 text-amber-900 bg-transparent focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-300 transition"
               />
               <button

@@ -39,11 +39,25 @@ const BlogList = () => {
 
     // Filter by search input
     if (input && input.trim() !== "") {
-      filtered = filtered.filter(
-        (blog) =>
-          blog.title.toLowerCase().includes(input.toLowerCase()) ||
-          blog.category.toLowerCase().includes(input.toLowerCase())
-      );
+      const searchTerm = input.toLowerCase().trim();
+      console.log("Searching for:", searchTerm);
+      filtered = filtered.filter((blog) => {
+        const matchesTitle = blog.title.toLowerCase().includes(searchTerm);
+        const matchesCategory = blog.category
+          .toLowerCase()
+          .includes(searchTerm);
+        const matchesSubTitle =
+          blog.subTitle && blog.subTitle.toLowerCase().includes(searchTerm);
+
+        const matches = matchesTitle || matchesCategory || matchesSubTitle;
+
+        if (matches) {
+          console.log("Match found:", blog.title);
+        }
+
+        return matches;
+      });
+      console.log("Filtered results:", filtered.length);
     }
 
     // Filter by category
@@ -158,7 +172,6 @@ const BlogList = () => {
       </div>
 
       <motion.div
-        key={menu}
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
@@ -170,7 +183,22 @@ const BlogList = () => {
           animate={{ scale: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Showing: <span className="font-bold text-orange-600">{menu}</span>
+          {input && input.trim() !== "" ? (
+            <>
+              Search results for:{" "}
+              <span className="font-bold text-orange-600">"{input}"</span>
+              {menu !== "All" && (
+                <span>
+                  {" "}
+                  in <span className="font-bold text-orange-600">{menu}</span>
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              Showing: <span className="font-bold text-orange-600">{menu}</span>
+            </>
+          )}
         </motion.p>
       </motion.div>
 

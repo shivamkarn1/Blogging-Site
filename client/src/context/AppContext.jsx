@@ -19,6 +19,7 @@ export const AppProvider = ({ children }) => {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
+  const [input, setInput] = useState("");
 
   // Configure axios baseURL
   axios.defaults.baseURL =
@@ -83,6 +84,8 @@ export const AppProvider = ({ children }) => {
     navigate,
     axios,
     logout,
+    input,
+    setInput,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
