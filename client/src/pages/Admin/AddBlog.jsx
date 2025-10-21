@@ -549,12 +549,12 @@ const AddBlog = () => {
               fields
             </p>
             <div className="flex gap-3">
-              <button
+              {/* <button
                 type="button"
                 className="px-6 py-3 text-sm font-semibold text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 shadow-sm hover:shadow active:scale-95"
               >
                 Save Draft
-              </button>
+              </button> */}
               <button
                 disabled={isAdding}
                 type="submit"
