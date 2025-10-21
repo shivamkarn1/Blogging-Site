@@ -5,6 +5,30 @@ import { useAppContext } from "../../context/AppContext";
 import { toast } from "sonner";
 import { parse } from "marked";
 
+// Custom CSS animations
+const floatingAnimation = `
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(180deg); }
+}
+@keyframes slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-\\[float_2s_ease-in-out_infinite\\] { animation: float 2s ease-in-out infinite; }
+.animate-\\[float_2s_ease-in-out_infinite_0\\.7s\\] { animation: float 2s ease-in-out infinite 0.7s; }
+.animate-\\[float_2s_ease-in-out_infinite_1\\.4s\\] { animation: float 2s ease-in-out infinite 1.4s; }
+.animate-\\[float_2s_ease-in-out_infinite_0\\.3s\\] { animation: float 2s ease-in-out infinite 0.3s; }
+.animate-\\[slide_1\\.5s_ease-in-out_infinite\\] { animation: slide 1.5s ease-in-out infinite; }
+`;
+
+// Inject styles
+if (typeof document !== "undefined") {
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = floatingAnimation;
+  document.head.appendChild(styleSheet);
+}
+
 const AddBlog = () => {
   const { axios } = useAppContext();
 
@@ -334,67 +358,54 @@ const AddBlog = () => {
                 ></div>
 
                 {loading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-50/98 via-orange-50/98 to-amber-50/98 backdrop-blur-md rounded-lg border border-orange-200/50 shadow-lg">
-                    <div className="text-center max-w-sm px-6">
-                      <div className="relative inline-block mb-6">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-amber-400 rounded-2xl blur-xl opacity-40 animate-pulse"></div>
-                        {/* removing the bulb for now */}
-                        {/* <div className="relative bg-gradient-to-br from-orange-500 to-amber-500 p-4 rounded-2xl shadow-lg animate-bounce">
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white/95 via-orange-50/95 to-amber-50/95 backdrop-blur-sm rounded-xl">
+                    <div className="text-center max-w-md px-8">
+                      {/* Single Interactive Brain/AI Icon */}
+                      <div className="relative mb-8">
+                        <div className="relative inline-block">
                           <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-8 h-8 text-white animate-spin"
-                            fill="none"
+                            className="w-20 h-20 text-orange-500 animate-pulse"
+                            fill="currentColor"
                             viewBox="0 0 24 24"
-                            stroke="currentColor"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                            />
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.19 0 2.34-.21 3.41-.6.3-.11.49-.4.49-.72 0-.43-.35-.78-.78-.78-.22 0-.42.09-.56.24-.82.3-1.7.46-2.56.46-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6c0 .86-.16 1.74-.46 2.56-.15.14-.24.34-.24.56 0 .43.35.78.78.78.32 0 .61-.19.72-.49.39-1.07.6-2.22.6-3.41C22 6.48 17.52 2 12 2z" />
+                            <circle cx="8.5" cy="10.5" r="1.5" />
+                            <circle cx="15.5" cy="10.5" r="1.5" />
+                            <path d="M12 17.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
                           </svg>
-                        </div> */}
-                      </div>
 
-                      <div className="mb-4">
-                        <h3 className="text-lg font-semibold text-slate-800 mb-1">
-                          AI Content Generation
-                        </h3>
-                        <p className="text-sm text-slate-600 min-h-[20px] transition-all duration-300">
-                          {currentText}
-                          <span className="inline-flex ml-1">
-                            <span className="animate-[bounce_0.8s_ease-in-out_infinite_0ms]">
-                              .
-                            </span>
-                            <span className="animate-[bounce_0.8s_ease-in-out_infinite_150ms]">
-                              .
-                            </span>
-                            <span className="animate-[bounce_0.8s_ease-in-out_infinite_300ms]">
-                              .
-                            </span>
-                          </span>
-                        </p>
-                      </div>
-
-                      <div className="w-full bg-slate-200 rounded-full h-3 mb-2 overflow-hidden shadow-inner">
-                        <div
-                          className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 rounded-full transition-all duration-200 ease-out relative overflow-hidden"
-                          style={{ width: `${typingProgress}%` }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.5s_ease-in-out_infinite]"></div>
+                          {/* Floating particles around the brain */}
+                          <div className="absolute -top-2 -left-2 w-3 h-3 bg-orange-400 rounded-full animate-[float_2s_ease-in-out_infinite]"></div>
+                          <div className="absolute -top-1 -right-3 w-2 h-2 bg-amber-400 rounded-full animate-[float_2s_ease-in-out_infinite_0.7s]"></div>
+                          <div className="absolute -bottom-2 left-1 w-2.5 h-2.5 bg-orange-300 rounded-full animate-[float_2s_ease-in-out_infinite_1.4s]"></div>
+                          <div className="absolute bottom-0 -right-1 w-2 h-2 bg-amber-300 rounded-full animate-[float_2s_ease-in-out_infinite_0.3s]"></div>
                         </div>
                       </div>
 
-                      <p className="text-sm font-semibold text-slate-600">
+                      {/* Content Generation Status */}
+                      <div className="mb-6">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">
+                          AI Content Generation
+                        </h3>
+                        <p className="text-base text-slate-600 min-h-[24px] transition-all duration-500 font-medium">
+                          {currentText}
+                        </p>
+                      </div>
+
+                      {/* Elegant Progress Bar */}
+                      <div className="w-full bg-gradient-to-r from-slate-200 to-slate-300 rounded-full h-2 mb-4 overflow-hidden shadow-inner">
+                        <div
+                          className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-300 ease-out relative"
+                          style={{ width: `${typingProgress}%` }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[slide_1.5s_ease-in-out_infinite]"></div>
+                        </div>
+                      </div>
+
+                      {/* Progress Percentage */}
+                      <p className="text-sm font-semibold text-slate-500">
                         {typingProgress}% complete
                       </p>
-
-                      <div className="mt-4 flex items-center justify-center gap-1.5">
-                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[pulse_1s_ease-in-out_infinite]"></div>
-                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[pulse_1s_ease-in-out_infinite_0.15s]"></div>
-                        <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-[pulse_1s_ease-in-out_infinite_0.3s]"></div>
-                      </div>
                     </div>
                   </div>
                 )}
