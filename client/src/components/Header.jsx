@@ -20,11 +20,11 @@ const Header = () => {
       <div className="text-center mt-20 mb-8 relative z-10">
         <div className="inline-flex items-center justify-center gap-4 px-6 py-1.5 mb-4 border border-amber-600 bg-amber-50/70 rounded-full text-sm text-amber-700 shadow-sm">
           <p className="font-medium">New : AI feature Implemented</p>
-          <img src={assets.star_icon} className="w-3" alt="staricon" />
         </div>
 
         <h1 className="text-3xl sm:text-5xl font-extrabold sm:leading-tight text-amber-900">
-          Your own <span className="text-amber-600">Blogging</span> <br /> Site.
+          Welcome to a Modern <span className="text-amber-600">Blogging</span>{" "}
+          <br /> Site.
         </h1>
 
         <p className="mt-4 text-amber-700 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
