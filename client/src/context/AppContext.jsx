@@ -20,6 +20,13 @@ export const AppProvider = ({ children }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [input, setInput] = useState("");
+  const [showSocialGlow, setShowSocialGlow] = useState(false);
+
+  // Function to trigger social media glow effect
+  const triggerSocialGlow = () => {
+    setShowSocialGlow(true);
+    setTimeout(() => setShowSocialGlow(false), 5000);
+  };
 
   // Configure axios baseURL
   axios.defaults.baseURL =
@@ -86,6 +93,9 @@ export const AppProvider = ({ children }) => {
     logout,
     input,
     setInput,
+    showSocialGlow,
+    setShowSocialGlow,
+    triggerSocialGlow,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
